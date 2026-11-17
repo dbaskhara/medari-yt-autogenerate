@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Medari Live Footer</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #fff; --ink: #1d2025; --muted: #6b7280; --line: #e3e5e9;
+    --accent: #1f6feb; --accent-ink: #fff; --ok: #1a7f37; --warn: #b42318; --soft: #f7f8fa;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  header { padding: 20px 24px 8px; max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0; }
+  header p { margin: 4px 0 0; color: var(--muted); }
+  main { max-width: 1100px; margin: 0 auto; padding: 12px 24px 120px; }
+  .drop { border: 2px dashed #b8bec8; border-radius: 12px; background: var(--card); padding: 34px; text-align: center; cursor: pointer; transition: .15s; }
+  .drop.over { border-color: var(--accent); background: #eef4ff; }
+  .drop strong { font-size: 17px; }
+  .drop small { display: block; color: var(--muted); margin-top: 6px; }
+  .info { display: none; margin: 16px 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
+  .info b { font-weight: 600; }
+  .info .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px 18px; }
+  .info label { color: var(--muted); font-size: 12px; display: block; }
+  .msg { margin: 12px 0; padding: 10px 14px; border-radius: 8px; display: none; }
+  .msg.err { display: block; background: #fdecea; color: var(--warn); }
+  .toolbar { display: none; align-items: center; justify-content: space-between; margin: 18px 0 8px; }
+  .toolbar h2 { font-size: 16px; margin: 0; }
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .item { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; grid-template-columns: 34px 1fr 400px; gap: 12px; align-items: center; }
+  .item.off > .num, .item.off > .fields, .item.off > .side img { opacity: .5; }
+  .item .num { font-weight: 600; color: var(--muted); text-align: center; }
+  .item .num input { width: 18px; height: 18px; display: block; margin: 6px auto 0; }
+  .fields { display: grid; gap: 6px; }
+  .row { display: flex; gap: 6px; }
+  input[type=text], select { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; font: inherit; background: #fff; }
+  .fields input.main { font-weight: 600; }
+  select { width: 110px; flex: none; }
+  .small-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .item.bar .small-row { display: none; }
+  .side { display: flex; flex-direction: column; gap: 6px; }
+  .side img { width: 100%; border-radius: 6px; background: #26292e; aspect-ratio: 1920/250; }
+  .side .acts { display: flex; gap: 6px; justify-content: flex-end; }
+  button { font: inherit; border: 1px solid var(--line); background: #fff; border-radius: 7px; padding: 5px 10px; cursor: pointer; }
+  button:hover { background: #f0f2f5; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); padding: 10px 22px; font-weight: 600; font-size: 16px; }
+  button.primary:hover { filter: brightness(1.08); }
+  button.link { border: 0; background: none; color: var(--accent); padding: 2px 0; }
+  button:disabled { opacity: .5; cursor: default; }
+  .hint { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* music sheet panel */
+  .sheet { grid-column: 2 / -1; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 8px; }
+  .sheet .head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sheet .head label { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+  .sheet .status { color: var(--muted); font-size: 13px; }
+  .sheet .status.err { color: var(--warn); }
+  .sheet .note { color: #9a6700; font-size: 13px; }
+  .sheet .opts { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .sheet .opts input[type=text] { width: 300px; }
+  .sheet .opts label { display: flex; gap: 6px; align-items: center; }
+  .sheet .body { display: grid; grid-template-columns: 1fr 300px; gap: 12px; align-items: start; }
+  .thumbs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .thumb { position: relative; width: 112px; cursor: pointer; border: 3px solid transparent; border-radius: 6px; background: #fff; }
+  .thumb img { width: 100%; display: block; border-radius: 3px; aspect-ratio: 4/3; object-fit: contain; background: #fff; }
+  .thumb.sel { border-color: var(--accent); }
+  .thumb .badge { position: absolute; top: -8px; left: -8px; background: var(--accent); color: #fff; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; font-weight: 700; display: none; align-items: center; justify-content: center; }
+  .thumb.sel .badge { display: flex; }
+  .thumb .cap { font-size: 11px; color: var(--muted); text-align: center; }
+  .upload { width: 112px; aspect-ratio: 4/3; border: 2px dashed #c4c9d1; border-radius: 6px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; color: var(--muted); cursor: pointer; padding: 4px; }
+  .sheet .big img { width: 100%; border-radius: 6px; border: 1px solid var(--line); display: block; background: #26292e; aspect-ratio: 16/9; }
+  .sheet.off .body, .sheet.off .opts { display: none; }
+  .add-sheet { grid-column: 2 / -1; display: flex; gap: 8px; align-items: center; }
+  .add-sheet input { width: 160px !important; }
+
+  /* thumbnail */
+  .thumbbox { display: none; margin: 16px 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
+  .thumbbox .head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .thumbbox .head label { display: flex; gap: 8px; align-items: center; font-weight: 600; font-size: 16px; }
+  .thumbbox .body { display: grid; grid-template-columns: 1fr 520px; gap: 16px; align-items: start; }
+  .thumbbox.off .body { display: none; }
+  .tfields { display: grid; gap: 6px; }
+  .tfields label { font-size: 12px; color: var(--muted); }
+  .tfields textarea { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; font: inherit; font-weight: 600; resize: vertical; }
+  .tprev img { width: 100%; aspect-ratio: 16/9; border-radius: 8px; border: 1px solid var(--line); display: block; background: #eee; }
+  .photos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .photo { width: 84px; cursor: pointer; border: 3px solid transparent; border-radius: 6px; background: #e9ebef; text-align: center; font-size: 10px; color: var(--muted); overflow: hidden; }
+  .photo img { width: 100%; height: 96px; object-fit: contain; display: block; }
+  .photo.sel { border-color: var(--accent); }
+  .photo.none { display: flex; align-items: center; justify-content: center; height: 118px; font-size: 12px; }
+  .photo.up { display: flex; align-items: center; justify-content: center; height: 118px; border: 2px dashed #c4c9d1; background: #fff; font-size: 12px; }
+  .vidopts { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin: -2px 0 12px; font-size: 14px; }
+  .vidopts label { display: flex; gap: 6px; align-items: center; }
+  .vidopts input[type=number] { width: 64px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+  .thumbbox.off .vidopts { display: none; }
+  .sliders { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
+  @media (max-width: 860px) { .thumbbox .body { grid-template-columns: 1fr; } }
+
+  footer.bar { position: fixed; left: 0; right: 0; bottom: 0; background: #ffffffee; backdrop-filter: blur(6px); border-top: 1px solid var(--line); display: none; }
+  footer.bar .in { max-width: 1100px; margin: 0 auto; padding: 12px 24px; display: flex; gap: 12px; align-items: center; }
+  footer.bar .result { color: var(--ok); flex: 1; }
+  footer.bar .result button { margin-left: 8px; }
+  @media (max-width: 860px) { .item { grid-template-columns: 34px 1fr; } .side, .sheet, .add-sheet { grid-column: 1 / -1; } .sheet .body { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Medari Live Footer</h1>
+  <p>Drop this week's Tata Ibadah PDF, check the list, then generate the footer and music-sheet PNGs for OBS.</p>
+</header>
+<main>
+  <div class="drop" id="drop">
+    <strong>Drop the Tata Ibadah PDF here</strong>
+    <small>or click to choose a file</small>
+    <input type="file" id="file" accept="application/pdf" hidden>
+  </div>
+  <div class="msg" id="msg"></div>
+
+  <section class="info" id="info">
+    <div class="grid">
+      <div><label>File</label><b id="i-file"></b></div>
+      <div><label>Date</label><b id="i-date"></b></div>
+      <div><label>Theme</label><b id="i-theme"></b></div>
+      <div><label>Preacher</label><b id="i-preacher"></b></div>
+    </div>
+  </section>
+
+  <section class="thumbbox" id="thumb">
+    <div class="head"><label><input type="checkbox" id="t-inc" checked> YouTube thumbnail</label>
+      <span class="hint">Saved as a 1280×720 JPG for YouTube and a 1920×1080 PNG for OBS.</span></div>
+    <div class="vidopts">
+      <label><input type="checkbox" id="t-video" checked> Countdown video: thumbnail → <i>Bahan Ads Mentah</i> video → thumbnail, with fades</label>
+      <label>thumbnail <input type="number" id="t-hold" min="2" max="30" step="0.5" value="5"> s</label>
+      <label>fade <input type="number" id="t-fade" min="0.2" max="3" step="0.1" value="1"> s</label>
+    </div>
+    <div class="body">
+      <div class="tfields">
+        <label>Top line</label><input type="text" data-k="date_line">
+        <label>Theme (press Enter to choose where a new line starts)</label><textarea data-k="theme" rows="3"></textarea>
+        <label>Readings</label><input type="text" data-k="readings">
+        <label>Preacher (bottom left)</label><input type="text" data-k="preacher">
+        <label>Time and language (bottom right)</label><input type="text" data-k="time_lang">
+        <label>Photo <span id="t-photo-status"></span></label>
+        <div class="photos" id="t-photos"></div>
+        <div class="sliders">
+          Size <input type="range" min="0.5" max="1.6" step="0.02" value="1" data-s="zoom">
+          Left / right <input type="range" min="-300" max="400" step="5" value="0" data-s="dx">
+          Up / down <input type="range" min="-250" max="400" step="5" value="0" data-s="dy">
+        </div>
+      </div>
+      <div class="tprev"><img id="t-img" alt=""></div>
+    </div>
+  </section>
+
+  <div class="toolbar" id="toolbar">
+    <h2 id="count"></h2>
+    <button id="add">+ Add footer</button>
+  </div>
+  <div class="list" id="list"></div>
+</main>
+
+<footer class="bar" id="bottom">
+  <div class="in">
+    <button class="primary" id="gen">Generate</button>
+    <div class="result" id="result"></div>
+  </div>
+</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+let svc = null;
+let uid = 0;
+
+function showError(text) { const m = $('#msg'); m.textContent = text; m.className = 'msg err'; }
+function clearError() { $('#msg').className = 'msg'; }
+function esc(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function debounce(fn, ms) { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; }
+async function postJSON(url, body) {
+  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  return r;
+}
+
+// ---------- upload PDF ----------
+const drop = $('#drop'), file = $('#file');
+drop.onclick = () => file.click();
+file.onchange = () => file.files[0] && upload(file.files[0]);
+['dragenter', 'dragover'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', ev => ev.dataTransfer.files[0] && upload(ev.dataTransfer.files[0]));
+
+async function upload(f) {
+  clearError();
+  drop.querySelector('strong').textContent = 'Reading ' + f.name + ' ...';
+  const fd = new FormData(); fd.append('pdf', f);
+  try {
+    const r = await fetch('/api/parse', { method: 'POST', body: fd });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Could not read the PDF');
+    svc = data;
+    drop.querySelector('strong').textContent = 'Drop another PDF to start again';
+    $('#i-file').textContent = data.filename;
+    $('#i-date').textContent = [data.date, data.time].filter(Boolean).join(', ') || '-';
+    $('#i-theme').textContent = data.theme || '-';
+    $('#i-preacher').textContent = [data.preacher, data.preacher_church && '(' + data.preacher_church + ')'].filter(Boolean).join(' ') || '-';
+    $('#info').style.display = 'block';
+    $('#toolbar').style.display = 'flex';
+    $('#bottom').style.display = 'block';
+    $('#result').textContent = '';
+    for (const f of svc.footers) {
+      f._id = ++uid;
+      if (f.song) f.sheet = newSheet(f, f.include);
+    }
+    renderList();
+    setupThumb();
+    loadSongs();
+  } catch (e) {
+    drop.querySelector('strong').textContent = 'Drop the Tata Ibadah PDF here';
+    showError(e.message);
+  }
+}
+
+function newSheet(f, include) {
+  return { include, status: 'waiting', key: '', name: '', slides: [], selected: [], label: f.top || '',
+           qr: /persembahan/i.test(f.top || ''), note: '', error: '' };
+}
+
+// fetch songs one by one (PowerPoint handles one file at a time)
+async function loadSongs() {
+  for (const f of svc.footers) {
+    if (f.sheet && f.sheet.include && f.sheet.status === 'waiting') await loadSong(f);
+  }
+}
+
+async function loadSong(f) {
+  const s = f.sheet;
+  s.status = 'loading'; s.error = ''; updateCard(f);
+  try {
+    const r = await postJSON('/api/song', f.song);
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    Object.assign(s, { status: 'ready', key: data.key, name: data.name, slides: data.slides, selected: data.selected, note: data.note });
+  } catch (e) {
+    s.status = 'error'; s.error = e.message;
+    if (!s.key) s.key = 'UP_' + Date.now() + '_' + f._id;   // allow uploading own images
+  }
+  updateCard(f);
+}
+
+// ---------- list ----------
+function renderList() {
+  const list = $('#list');
+  list.innerHTML = '';
+  svc.footers.forEach((f, i) => list.appendChild(buildCard(f, i)));
+  updateCounts();
+}
+
+function updateCounts() {
+  let n = 0, sheets = 0;
+  for (const f of svc.footers) {
+    if (f.include) n++;
+    if (f.sheet && f.sheet.include) sheets += f.sheet.selected.length;
+  }
+  $('#count').textContent = `${n} footers` + (sheets ? ` + ${sheets} music-sheet slides` : '');
+  const t = thumb && thumb.include ? 1 : 0;
+  $('#gen').textContent = `Generate ${n + sheets} images` + (t ? ' + thumbnail' : '') + (t && thumb.video ? ' + video' : '');
+  $('#gen').disabled = n + sheets + t === 0;
+  let k = 0;
+  document.querySelectorAll('.item').forEach((el, i) => {
+    const f = svc.footers[i];
+    el.querySelector('.num .n').textContent = (f.include || (f.sheet && f.sheet.include)) ? ++k : '–';
+  });
+}
+
+function buildCard(f, i) {
+  const el = document.createElement('div');
+  el.className = `item ${f.kind} ${f.include ? '' : 'off'}`;
+  el.dataset.id = f._id;
+  el.innerHTML = `
+    <div class="num"><span class="n"></span><input type="checkbox" ${f.include ? 'checked' : ''} title="Include this footer"></div>
+    <div class="fields">
+      <div class="row">
+        <select><option value="bar">Bar</option><option value="pill">Pill</option></select>
+        <input type="text" class="main" value="${esc(f.main)}" placeholder="Main text">
+      </div>
+      <div class="small-row">
+        <input type="text" class="top" value="${esc(f.top)}" placeholder="Small text above">
+        <input type="text" class="bottom" value="${esc(f.bottom)}" placeholder="Small text below">
+      </div>
+      ${f.source ? `<div class="hint" title="${esc(f.source)}">From PDF: ${esc(f.source)}</div>` : ''}
+    </div>
+    <div class="side">
+      <img alt="">
+      <div class="acts">
+        <button data-a="up" title="Move up">↑</button>
+        <button data-a="down" title="Move down">↓</button>
+        <button data-a="del" title="Remove">✕</button>
+      </div>
+    </div>
+    <div class="sheet-slot" style="display:contents"></div>`;
+  const sel = el.querySelector('select'); sel.value = f.kind;
+  const img = el.querySelector('.side img');
+  const refresh = debounce(() => footerPreview(f, img), 250);
+  el.querySelector('.num input').onchange = e => {
+    f.include = e.target.checked; el.classList.toggle('off', !f.include);
+    updateCounts();
+  };
+  sel.onchange = e => { f.kind = e.target.value; el.classList.toggle('bar', f.kind === 'bar'); el.classList.toggle('pill', f.kind === 'pill'); refresh(); };
+  for (const k of ['main', 'top', 'bottom']) el.querySelector('.' + k).oninput = e => { f[k] = e.target.value; refresh(); };
+  el.querySelector('.acts').onclick = e => {
+    const a = e.target.dataset.a; if (!a) return;
+    const j = svc.footers.indexOf(f);
+    if (a === 'del') svc.footers.splice(j, 1);
+    if (a === 'up' && j > 0) [svc.footers[j - 1], svc.footers[j]] = [svc.footers[j], svc.footers[j - 1]];
+    if (a === 'down' && j < svc.footers.length - 1) [svc.footers[j + 1], svc.footers[j]] = [svc.footers[j], svc.footers[j + 1]];
+    renderList();
+  };
+  footerPreview(f, img);
+  fillSheet(f, el.querySelector('.sheet-slot'));
+  return el;
+}
+
+function updateCard(f) {
+  const el = document.querySelector(`.item[data-id="${f._id}"]`);
+  if (el) fillSheet(f, el.querySelector('.sheet-slot'));
+  updateCounts();
+}
+
+async function footerPreview(f, img) {
+  const r = await postJSON('/api/preview', { kind: f.kind, main: f.main, top: f.top, bottom: f.bottom });
+  if (r.ok) { const old = img.src; img.src = URL.createObjectURL(await r.blob()); if (old) URL.revokeObjectURL(old); }
+}
+
+// ---------- music sheet panel ----------
+function fillSheet(f, slot) {
+  slot.innerHTML = '';
+  if (!f.sheet) {
+    if (f.kind !== 'pill') return;
+    const add = document.createElement('div');
+    add.className = 'add-sheet';
+    add.innerHTML = `<button class="link">+ Music sheet for this item</button>`;
+    add.querySelector('button').onclick = () => {
+      const m = (f.main || '').match(/^\s*([A-Za-z]{1,6})\s*(\d{1,4}[a-z]?)\s*(?::\s*(.+))?$/);
+      f.song = m ? { code: m[1].toUpperCase(), num: m[2], verses: m[3] || '' } : null;
+      f.sheet = newSheet(f, true);
+      if (f.song) loadSong(f); else { f.sheet.status = 'error'; f.sheet.error = 'Not a song number - add your own images below.'; f.sheet.key = 'UP_' + Date.now() + '_' + f._id; updateCard(f); }
+    };
+    slot.appendChild(add);
+    return;
+  }
+  const s = f.sheet;
+  const box = document.createElement('div');
+  box.className = 'sheet' + (s.include ? '' : ' off');
+  const status = s.status === 'loading' ? `Getting ${esc(f.song?.code)} ${esc(f.song?.num)} from the song library ...`
+    : s.status === 'ready' ? `${esc(s.name)} — click slides to choose (${s.selected.length} chosen)`
+    : s.status === 'error' ? esc(s.error) + ' You can add your own images.'
+    : 'Waiting ...';
+  box.innerHTML = `
+    <div class="head">
+      <label><input type="checkbox" ${s.include ? 'checked' : ''}> Music sheet slides</label>
+      <span class="status ${s.status === 'error' ? 'err' : ''}">${s.include ? status : ''}</span>
+    </div>
+    ${s.note && s.include ? `<div class="note">${esc(s.note)}</div>` : ''}
+    <div class="opts">
+      <label>Label <input type="text" class="label" value="${esc(s.label)}" placeholder="Pujian Pembuka"></label>
+      <label><input type="checkbox" class="qr" ${s.qr ? 'checked' : ''}> Show offering QR</label>
+    </div>
+    <div class="body">
+      <div class="thumbs"></div>
+      <div class="big"><img alt=""></div>
+    </div>`;
+  box.querySelector('.head input').onchange = e => {
+    s.include = e.target.checked;
+    if (s.include && s.status === 'waiting') loadSong(f); else updateCard(f);
+  };
+  const big = box.querySelector('.big img');
+  const refreshBig = debounce(() => sheetPreview(f, big), 300);
+  box.querySelector('.label').oninput = e => { s.label = e.target.value; refreshBig(); };
+  box.querySelector('.qr').onchange = e => { s.qr = e.target.checked; refreshBig(); };
+  const thumbs = box.querySelector('.thumbs');
+  for (const sl of s.slides) {
+    const t = document.createElement('div');
+    const pos = s.selected.indexOf(sl.index);
+    t.className = 'thumb' + (pos >= 0 ? ' sel' : '');
+    t.title = 'Click to use / not use this slide';
+    t.innerHTML = `<span class="badge">${pos + 1}</span><img loading="lazy" src="/api/slide/${encodeURIComponent(s.key)}/${sl.index}?w=240"><div class="cap">${sl.kind === 'lyrics' ? 'lyrics' : 'slide ' + sl.index}</div>`;
+    t.onclick = () => {
+      const p = s.selected.indexOf(sl.index);
+      if (p >= 0) s.selected.splice(p, 1); else { s.selected.push(sl.index); s.selected.sort((a, b) => a - b); }
+      updateCard(f);
+    };
+    thumbs.appendChild(t);
+  }
+  if (s.include && (s.status === 'ready' || s.status === 'error')) {
+    const up = document.createElement('label');
+    up.className = 'upload';
+    up.innerHTML = `+ Add own image<input type="file" accept="image/*" hidden>`;
+    up.querySelector('input').onchange = async e => {
+      const file = e.target.files[0]; if (!file) return;
+      const key = s.key.startsWith('UP_') ? s.key : null;
+      if (!key) { showError('Own images can be added to songs that were not found in the library.'); return; }
+      const fd = new FormData(); fd.append('key', key); fd.append('image', file);
+      const r = await fetch('/api/song-upload', { method: 'POST', body: fd });
+      const data = await r.json();
+      if (!r.ok) { showError(data.error); return; }
+      s.slides.push({ index: data.index, kind: 'upload' }); s.selected.push(data.index);
+      updateCard(f);
+    };
+    if (s.key.startsWith('UP_')) thumbs.appendChild(up);
+  }
+  slot.appendChild(box);
+  if (s.include && s.selected.length) sheetPreview(f, big); else big.parentElement.style.display = 'none';
+}
+
+async function sheetPreview(f, img) {
+  const s = f.sheet;
+  if (!s.selected.length) return;
+  const r = await postJSON('/api/sheet-preview', { key: s.key, index: s.selected[0], label: s.label, qr: s.qr });
+  if (r.ok) { const old = img.src; img.src = URL.createObjectURL(await r.blob()); if (old) URL.revokeObjectURL(old); }
+}
+
+// ---------- thumbnail ----------
+let thumb = null;
+const thumbPreview = debounce(async () => {
+  if (!thumb || !thumb.include) return;
+  const r = await postJSON('/api/thumb-preview', thumb);
+  if (r.ok) { const img = $('#t-img'), old = img.src; img.src = URL.createObjectURL(await r.blob()); if (old) URL.revokeObjectURL(old); }
+  else showError(await r.text());
+}, 300);
+
+function setupThumb() {
+  thumb = { include: true, ...svc.thumb, photo: '', zoom: 1, dx: 0, dy: 0,
+            video: $('#t-video').checked, hold: Number($('#t-hold').value), fade: Number($('#t-fade').value) };
+  $('#t-video').onchange = e => { thumb.video = e.target.checked; updateCounts(); };
+  $('#t-hold').oninput = e => { thumb.hold = Number(e.target.value) || 5; };
+  $('#t-fade').oninput = e => { thumb.fade = Number(e.target.value) || 1; };
+  $('#thumb').style.display = 'block';
+  $('#thumb').classList.remove('off');
+  $('#t-inc').checked = true;
+  $('#t-inc').onchange = e => { thumb.include = e.target.checked; $('#thumb').classList.toggle('off', !thumb.include); updateCounts(); thumbPreview(); };
+  document.querySelectorAll('#thumb [data-k]').forEach(inp => {
+    inp.value = thumb[inp.dataset.k] || '';
+    inp.oninput = () => { thumb[inp.dataset.k] = inp.value; thumbPreview(); };
+  });
+  // a changed preacher name searches the photo folder again
+  const research = debounce(() => {
+    if (!thumb.photo.startsWith('UPPHOTO_')) thumb.photo = '';
+    findPhotos(thumb.preacher.replace(/\(.*$/, '').trim());
+  }, 800);
+  $('#thumb [data-k="preacher"]').addEventListener('input', research);
+  document.querySelectorAll('#thumb [data-s]').forEach(inp => {
+    inp.value = thumb[inp.dataset.s];
+    inp.oninput = () => { thumb[inp.dataset.s] = Number(inp.value); thumbPreview(); };
+  });
+  updateCounts();
+  thumbPreview();
+  findPhotos(svc.preacher || '');
+}
+
+async function findPhotos(name) {
+  $('#t-photo-status').textContent = '- searching the photo folder ...';
+  let list = [];
+  try { const r = await fetch('/api/photos?name=' + encodeURIComponent(name)); list = (await r.json()).photos || []; } catch (e) {}
+  $('#t-photo-status').textContent = list.length ? `- ${list.length} found for ${name}, click to choose`
+    : `- no photo of ${name || 'the preacher'} in the photo folder. Add one with "+ Own photo" (a cut-out PNG looks best).`;
+  thumb.candidates = list;
+  if (list.length && !thumb.photo) thumb.photo = list[0].id;
+  renderPhotos();
+  thumbPreview();
+}
+
+function renderPhotos() {
+  const box = $('#t-photos');
+  box.innerHTML = '';
+  const add = (el, key) => { el.classList.toggle('sel', thumb.photo === key); el.onclick = () => { thumb.photo = key; renderPhotos(); thumbPreview(); }; box.appendChild(el); };
+  for (const p of thumb.candidates || []) {
+    const el = document.createElement('div'); el.className = 'photo'; el.title = p.name;
+    el.innerHTML = `<img loading="lazy" src="https://drive.google.com/thumbnail?id=${encodeURIComponent(p.id)}&sz=w200"><div>${esc(p.name.replace(/\.\w+$/, ''))}</div>`;
+    add(el, p.id);
+  }
+  if (thumb.photo.startsWith('UPPHOTO_')) {
+    const el = document.createElement('div'); el.className = 'photo none'; el.textContent = 'Own photo'; add(el, thumb.photo);
+  }
+  const none = document.createElement('div'); none.className = 'photo none'; none.textContent = 'No photo'; add(none, '');
+  const up = document.createElement('label'); up.className = 'photo up'; up.innerHTML = '+ Own photo<input type="file" accept="image/*" hidden>';
+  up.querySelector('input').onchange = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    const fd = new FormData(); fd.append('image', file);
+    const r = await fetch('/api/photo-upload', { method: 'POST', body: fd });
+    const data = await r.json();
+    if (!r.ok) { showError(data.error); return; }
+    thumb.photo = data.key; renderPhotos(); thumbPreview();
+  };
+  box.appendChild(up);
+}
+
+$('#add').onclick = () => {
+  svc.footers.push({ _id: ++uid, kind: 'bar', main: '', top: '', bottom: '', include: true, source: '' });
+  renderList(); window.scrollTo(0, document.body.scrollHeight);
+};
+
+// ---------- generate ----------
+$('#gen').onclick = async () => {
+  const loading = svc.footers.some(f => f.sheet && f.sheet.include && f.sheet.status === 'loading');
+  if (loading && !confirm('Some songs are still loading. Generate anyway (those songs are skipped)?')) return;
+  const btn = $('#gen'); btn.disabled = true; const label = btn.textContent; btn.textContent = 'Generating ...';
+  $('#result').textContent = ''; clearError();
+  const payload = { ...svc, thumb, footers: svc.footers.map(f => ({ ...f,
+    sheet: f.sheet && f.sheet.include && f.sheet.key ? { include: true, key: f.sheet.key, slides: f.sheet.selected, label: f.sheet.label, qr: f.sheet.qr } : null })) };
+  try {
+    const r = await postJSON('/api/generate', payload);
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    const res = $('#result');
+    res.textContent = `Done: ${data.files.length} files saved in ${data.folder}`;
+    const open = document.createElement('button'); open.textContent = 'Open folder';
+    open.onclick = () => postJSON('/api/open-folder', { folder: data.folder });
+    const zip = document.createElement('button'); zip.textContent = 'Download ZIP';
+    zip.onclick = () => { location.href = '/api/download/' + encodeURIComponent(data.zip); };
+    res.append(open, zip);
+  } catch (e) { showError(e.message || 'Generation failed'); }
+  btn.disabled = false; btn.textContent = label;
+};
+</script>
+</body>
+</html>

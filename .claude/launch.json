@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "footer-app",
+      "runtimeExecutable": ".venv/Scripts/python.exe",
+      "runtimeArgs": ["app/main.py", "--no-browser"],
+      "env": { "MEDARI_PORT": "5077" },
+      "port": 5077,
+      "autoPort": false
+    }
+  ]
+}
