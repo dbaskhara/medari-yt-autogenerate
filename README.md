@@ -30,7 +30,7 @@ Keep the black window open while you use the app, and close it when you're done.
 
 **Lettered steps inside a section** (e.g. *Paladosaning Sakramèn Bujana Suci*: a. Pratélan, b. Kidung Panglarap KPJ 314: 1 …, c. Paladosaning Roti Pambujanan …) each become a footer, as on the 11 Okt 2026 stream:
 - a step is a pill with the section name small on top and the step big in the bar (only the top half of the pill shows);
-- a song step gets its music sheet **full screen** (slide in the middle, grey at the sides, no camera box).;
+- a song step gets its music sheet **full screen** (slide in the middle, grey at the sides, no camera box);
 - a song named again without a title (g. KPJ 278:1) takes the title from its first mention.
 
 **Javanese services (Basa Jawa)** are read the same way. Role codes like (PP), (Prd1), (Prd3 & PP) and stage directions like (Pasamuwan Jumeneng) are removed. *Pamaosing Pangandika* gives one pill per *Waosan*, and *Panyuraosing Pangandika* gives the preacher pill. The preacher comes from "kaladosaken déning …". When the preacher is the church's own pastor, the thumbnail shows the congregation from the title page, e.g. "(Induk Murangan GKJ Medari-Sléman)". The thumbnail says "Basa Jawa" and joins the readings with ";", as in the Canva pages.
