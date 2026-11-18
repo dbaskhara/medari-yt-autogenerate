@@ -27,7 +27,7 @@ All images are 1920×1080 and line up with a 1920×1080 canvas.
 
 | Scene | Sources, top to bottom |
 |---|---|
-| **Countdown** | Media Source → `Minggu Ini\0 - Countdown Loop.mp4`, *Loop* on, *Restart playback when source becomes active* on |
+| **Countdown** | Media Source → `Minggu Ini\00 - Countdown Loop.mp4`, *Loop* on, *Restart playback when source becomes active* on |
 | **Ibadah** | Image Slide Show "Footer" → folder `Minggu Ini\Footer` · Camera |
 | **Lagu** | Image Slide Show "Lagu" → folder `Minggu Ini\Lagu` · Camera at x 1167, y 335, size 729 × 410 |
 | **Lagu Persembahan** | Image Slide Show → folder `Minggu Ini\Lagu Persembahan` · Camera at x 1167, y 167, size 730 × 412 |
