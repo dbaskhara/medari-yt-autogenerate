@@ -104,7 +104,7 @@ BOX_TEXT_X, BOX_SIZE, BOX_LEAD = 108, 38, 63
 BOX_TEXT_CENTER = 950                # middle of the text block (cap top to last baseline)
 BOX_MAX_LINES = 3
 BOX_TEXT_W = BOX[2] - BOX_TEXT_X - 40
-SPEAKER_RE = re.compile(r"^((?:PF|U|MJ\s*\d*|Imam|Pnt\.?|L|P|J)\s*:\s*)")
+SPEAKER_RE = re.compile(r"^((?:PF|PP|U|MJ\s*\d*|Prd\s*\d*|Imam|Pnt\.?|L|P|J)\s*:\s*)")
 
 
 @lru_cache(maxsize=1)

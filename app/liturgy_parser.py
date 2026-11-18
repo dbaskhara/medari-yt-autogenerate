@@ -22,9 +22,13 @@ SONG_RE = re.compile(
 INLINE_SONG_RE = re.compile(
     rf"\b(?P<book>{SONG_BOOKS})\s*(?P<num>\d+[a-z]?)(?:\s*:\s*(?P<verses>[\d\s,\-–]+?))?\s*[\"“”](?P<title>[^\"“”]+)[\"“”]"
 )
-ROLE_RE = re.compile(r"\s*\((?:MJ\s*\d*|PF|Imam|Pnt\.?|Dkn\.?|Liturgos|[A-Z]{1,4}\d?(?:\s*&\s*[A-Z]{1,4}\d?)*)\)\s*$")
-STAGE_RE = re.compile(r"\((?:Jemaat|Umat)[^)]*\)", re.IGNORECASE)
-READING_RE = re.compile(r"Bacaan\s+(?P<n>I{1,3}|IV|\d)\s+(?P<ref>.+?)\s*(?:\((?:MJ\s*\d*|PF)[^)]*\)|$)")
+# role codes after a section name: (PF) (MJ1) (Imam) - Javanese services: (PP) (Prd1) (Prd3 & PP)
+_ROLE = r"(?:MJ\s*\d*|PF|PP|Prd\s*\d*|Imam|Pnt\.?|Dkn\.?|Liturgos|[A-Z]{1,4}\d?)"
+ROLE_RE = re.compile(rf"\s*\({_ROLE}(?:\s*&\s*{_ROLE})*\)\s*$")
+STAGE_RE = re.compile(r"\((?:Jemaat|Umat|Pasamuwan)[^)]*\)", re.IGNORECASE)
+READING_RE = re.compile(r"(?P<word>Bacaan|Waosan)\s+(?P<n>I{1,3}|IV|\d)\s*:?\s+(?P<ref>.+?)\s*(?:\((?:MJ\s*\d*|PF|PP|Prd\s*\d*)[^)]*\)|$)")
+READING_HEADERS = r"Pembacaan Alkitab|Pamaosing Pangandika|Pamaosing Kitab Suci"
+SERMON_HEADERS = r"Khotbah|Panyuraosing Pangandika|Kotbah"
 ROMAN = {"I": 1, "II": 2, "III": 3, "IV": 4}
 
 
@@ -123,22 +127,26 @@ def _classify(header, body_after):
         return [Footer("pill", _song_main(m.group("book"), m.group("num"), m.group("verses")),
                        top=label, bottom=_clean(m.group("title")), source=header, song=_song_ref(m))]
     name = ROLE_RE.sub("", text).strip(" :")
-    if re.fullmatch(r"Pembacaan Alkitab", name, re.IGNORECASE):
+    if re.match(rf"(?:PF|PP|Prd\s*\d*|MJ\s*\d*)\s+\S", name):     # "PP Mandhap saking mimbar ..." = stage direction
+        return []
+    if re.fullmatch(READING_HEADERS, name, re.IGNORECASE):
         readings = []
         for line in body_after:
             r = READING_RE.search(line)
             if r:
                 n = ROMAN.get(r.group("n"), r.group("n"))
-                readings.append(Footer("pill", _clean(r.group("ref")), top="Pembacaan Alkitab",
-                                       bottom=f"Bacaan {n}", source=line))
+                readings.append(Footer("pill", _clean(r.group("ref")).strip(" :"), top=name,
+                                       bottom=f"{r.group('word')} {n}", source=line))
         return readings or [Footer("bar", name, source=header)]
-    if re.fullmatch(r"Khotbah", name, re.IGNORECASE):
-        return [Footer("pill", "{preacher}", top="Khotbah", source=header)]
+    if re.fullmatch(SERMON_HEADERS, name, re.IGNORECASE):
+        return [Footer("pill", "{preacher}", top=name, source=header)]
     return [Footer("bar", name, source=header)]
 
 
-SPEAKER_RE = re.compile(r"^(PF|U|MJ\s*\d*|Imam|Pnt\.?|L|P|J)\s*:\s*(.*)$")
-SUNG_RE = re.compile(r"(?:nyanyi\w*|menyanyikan|lagu|pujian)\s+[\"“”]([^\"“”]{4,80})[\"“”]", re.IGNORECASE)
+SPEAKER_RE = re.compile(r"^(PF|PP|U|MJ\s*\d*|Prd\s*\d*|Imam|Pnt\.?|L|P|J)\s*:\s*(.*)$")
+# "disambut dengan nyanyian "..."" / Javanese "kasambut (kanthi pepujèn) "...""
+SUNG_RE = re.compile(r"(?:nyanyi\w*|menyanyikan|lagu|pujian|kasambut|pepuj[eè]n|kidung)\s+(?:kanthi\s+pepuj[eè]n\s+)?"
+                     r"[\"“”]([^\"“”]{4,80})[\"“”]", re.IGNORECASE)
 
 
 def _dialog(body):
@@ -150,11 +158,16 @@ def _dialog(body):
         if m:
             spk = re.sub(r"\s+", "", m.group(1))
             text = m.group(2).strip()
-            if not text or re.match(r"(?:menyanyikan|bernyanyi)\b", text, re.IGNORECASE):
+            if not text or re.match(r"(?:menyanyikan|bernyanyi|ngidungaken|kidung)\b", text, re.IGNORECASE):
                 break
             turns.append((spk, [STAGE_RE.sub("", text).strip()]))
         elif turns and line and line[0] not in "(#~*" and not line.isupper():
-            turns[-1][1].append(line)
+            prev = turns[-1][1]
+            # the PDF broke the sentence (small letter, or the line before has no punctuation): join it again
+            if line[0].islower() or prev[-1].endswith("-") or not re.search(r"[.,!?;:”\"]$", prev[-1]):
+                prev[-1] += ("" if prev[-1].endswith("-") else " ") + line
+            else:
+                prev.append(line)
         elif turns:
             break
     clean = []
@@ -177,7 +190,7 @@ def _lyrics(body, end_line):
     out = []
     for line in body[i + 1:]:
         line = line.strip()
-        if not line or line.isdigit():
+        if not line or line.isdigit() or line.lower().startswith(("http", "www.")):
             continue
         if line[0] in "(#~*" or SPEAKER_RE.match(line) or line.isupper():
             break
@@ -188,16 +201,21 @@ def _lyrics(body, end_line):
     return out
 
 
+def _rows(lines):
+    """Rough number of rows the lines take in a box (about 85 characters fit in one row)."""
+    return sum(max(1, -(-len(l) // 85)) for l in lines)
+
+
 def _boxes(section, body, known_lyrics):
     """Box footers for a section: the PF/U dialog (if the congregation answers) and
     songs sung without a song number, with their lyrics when the PDF prints them."""
     out = []
-    turns = _dialog(body)
+    turns = [] if re.fullmatch(READING_HEADERS, section or "", re.IGNORECASE) else _dialog(body)
     if any(s == "U" for s, _ in turns):
         paras, cur = [], []
         for spk, lines in turns:
             text = [f"{spk} : {lines[0]}"] + lines[1:]
-            if spk == "U" and cur and len(cur) + len(text) <= 3:
+            if spk == "U" and cur and _rows(cur) + _rows(text) <= 3:
                 cur += text
             else:
                 if cur:
@@ -206,7 +224,7 @@ def _boxes(section, body, known_lyrics):
         if cur:
             paras.append(cur)
         out.append(Footer("box", "\n\n".join("\n".join(p) for p in paras), top=section or "Dialog",
-                          bottom="dialog", include=bool(re.search(r"pengutusan", section, re.IGNORECASE)),
+                          bottom="dialog", include=bool(re.search(r"p[ae]ngutusan", section, re.IGNORECASE)),
                           source=f"{section}: PF / U dialog"))
     joined, starts = "", []
     for line in body:
@@ -246,6 +264,17 @@ def parse(pdf_path):
         church = _clean(m.group(2))
         abbr = re.search(r"\(([A-Z]{2,})\)\s*(.*)", church)
         svc.preacher_church = f"{abbr.group(1)} {abbr.group(2)}".strip() if abbr else church
+    else:   # Javanese: "Pangandikanipun Gusti badhé kaladosaken déning Bp. Pdt. Éko Iswanto."
+        m = re.search(r"(?:kaladosaken|dipunladosi|kaladosan|dilayankan oleh)\s+(?:d[eé]ning\s+)?"
+                      r"(?:Bp\.|Ibu|Sdr\.|Sdri\.)?\s*((?:Pdt\.|Vik\.|Pnt\.)\s*(?:Em\.\s*)?[^,.;()]+?)"
+                      r"(?:,?\s+(?:saking|dari)\s+([^,;]+?))?\s*(?:[.,;](?:\s|$)|$)", full)
+        if m:
+            svc.preacher = _clean(m.group(1))
+            svc.preacher_church = _clean(m.group(2) or "")
+    if svc.preacher and not svc.preacher_church:
+        # the church's own pastor: use the congregation named under the title, e.g. "Induk Murangan GKJ Medari-Sléman"
+        home = next((l for l in first[1:5] if "GKJ" in l and not re.search(r"\d{4}", l)), "")
+        svc.preacher_church = home
 
     # ---- footers, in page order ----------------------------------------------
     header_texts = set()
@@ -289,7 +318,7 @@ def parse(pdf_path):
             continue
         if kind == "header":
             new = _classify(*payload)
-            name = new[0].main if new and new[0].kind == "bar" else ""
+            name = (new[0].main if new[0].kind == "bar" else new[0].top) if new else ""
             new += _boxes(name, bodies.get(n, []), known_lyrics)
             for f in new:
                 k = re.match(rf"({SONG_BOOKS})\s*(\d+[a-z]?)", f.main, re.IGNORECASE)

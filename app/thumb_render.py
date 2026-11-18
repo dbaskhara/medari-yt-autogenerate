@@ -3,6 +3,7 @@
 Layout measured from the 15 Nov 2026 thumbnail (made in Canva, 1280x720) and scaled to 1920x1080.
 The background (assets/thumb_bg.png) is the Canva page with all text and the photo removed.
 """
+import re
 from functools import lru_cache
 from pathlib import Path
 
@@ -71,11 +72,34 @@ def _wrap(text, font, max_w):
     return lines
 
 
+def _balanced(text, font, max_w):
+    """Line breaks like a designer would set them: as few lines as needed, lines of
+    similar length, and a break after a comma when there is one."""
+    if "\n" in text:                       # the user chose the line breaks
+        return _wrap(text, font, max_w)
+    words = text.split()
+    n = len(_wrap(text, font, max_w))
+    if n < 2 or len(words) > 16:
+        return _wrap(text, font, max_w)
+    from itertools import combinations
+    best, best_score = None, None
+    for cuts in combinations(range(1, len(words)), n - 1):
+        parts = [words[a:b] for a, b in zip((0,) + cuts, cuts + (len(words),))]
+        lines = [" ".join(p) for p in parts]
+        widths = [font.getlength(l) for l in lines]
+        if max(widths) > max_w:
+            continue
+        score = max(widths) - min(widths) - 250 * sum(l.endswith(",") for l in lines[:-1])
+        if best_score is None or score < best_score:
+            best, best_score = lines, score
+    return best or _wrap(text, font, max_w)
+
+
 def _theme_lines(theme):
     size = THEME_SIZE
     while True:
         f = _font("Inter-Bold.ttf", size)
-        lines = _wrap(theme, f, THEME_MAX_W)
+        lines = _balanced(theme, f, THEME_MAX_W)
         if (len(lines) <= THEME_MAX_LINES and all(f.getlength(l) <= THEME_MAX_W for l in lines)) or size <= 50:
             return f, lines
         size -= 4
@@ -150,14 +174,14 @@ def default_texts(svc_dict):
     javanese = any(w in (svc_dict.get("title") or "").lower() for w in ("pangibadah", "pangabekti", "jawi"))
     lang = "Basa Jawa" if javanese else "Bahasa Indonesia"
     readings = [f["main"] for f in svc_dict.get("footers", [])
-                if f.get("top") == "Pembacaan Alkitab" and (f.get("bottom") or "").startswith("Bacaan")]
+                if f.get("kind") == "pill" and re.match(r"(?:Bacaan|Waosan) \w+$", f.get("bottom") or "")]
     preacher = svc_dict.get("preacher") or ""
     church = svc_dict.get("preacher_church") or ""
     time = (svc_dict.get("time") or "08:00 WIB").strip()
     return {
         "date_line": f"{title}, {svc_dict.get('date', '')}".strip(", "),
         "theme": svc_dict.get("theme") or "",
-        "readings": ", ".join(readings),
+        "readings": ("; " if javanese else ", ").join(readings),   # as in the Canva pages
         "preacher": f"{preacher} ({church})" if church else preacher,
         "time_lang": f"{time}   •   {lang}",
     }

@@ -28,6 +28,8 @@ Keep the black window open while you use the app, and close it when you're done.
 | PF / U dialog, e.g. in `Pengutusan & Berkat` | **Box** footers: one image per PF + U pair, as on the stream. Ticked for Pengutusan; other sections with a dialog (Votum, Berita Anugerah) are offered unticked |
 | Song without a number, e.g. `nyanyian "Kudaki Daki Gunung …"` | **Box** footers with the lyrics. They are read from the PDF when printed there, and reused when the song is sung again later. If the lyrics aren't in the PDF, the item is unticked and you type them in |
 
+**Javanese services (Basa Jawa)** are read the same way. Role codes like (PP), (Prd1), (Prd3 & PP) and stage directions like (Pasamuwan Jumeneng) are removed. *Pamaosing Pangandika* gives one pill per *Waosan*, and *Panyuraosing Pangandika* gives the preacher pill. The preacher comes from "kaladosaken déning …". When the preacher is the church's own pastor, the thumbnail shows the congregation from the title page, e.g. "(Induk Murangan GKJ Medari-Sléman)". The thumbnail says "Basa Jawa" and joins the readings with ";", as in the Canva pages.
+
 **Box footers** use the rounded light box from the CorelDRAW template, with the bar behind it. On the page, a box item has a text area:
 - an **empty line** starts a new box (a new image);
 - longer text is wrapped and split into boxes of 3 lines by itself;
