@@ -38,7 +38,9 @@
   .fields input.main { font-weight: 600; }
   select { width: 110px; flex: none; }
   .small-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .item.bar .small-row { display: none; }
+  .item.bar .small-row, .item.box .small-row { display: none; }
+  .item.box .side img { aspect-ratio: auto; }
+  textarea.boxtext { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; font: inherit; resize: vertical; }
   .side { display: flex; flex-direction: column; gap: 6px; }
   .side img { width: 100%; border-radius: 6px; background: #26292e; aspect-ratio: 1920/250; }
   .side .acts { display: flex; gap: 6px; justify-content: flex-end; }
@@ -258,7 +260,7 @@ function renderList() {
 function updateCounts() {
   let n = 0, sheets = 0;
   for (const f of svc.footers) {
-    if (f.include) n++;
+    if (f.include) n += f.kind === 'box' ? (f._n ?? 1) : 1;
     if (f.sheet && f.sheet.include) sheets += f.sheet.selected.length;
   }
   $('#count').textContent = `${n} footers` + (sheets ? ` + ${sheets} music-sheet slides` : '');
@@ -280,9 +282,14 @@ function buildCard(f, i) {
     <div class="num"><span class="n"></span><input type="checkbox" ${f.include ? 'checked' : ''} title="Include this footer"></div>
     <div class="fields">
       <div class="row">
-        <select><option value="bar">Bar</option><option value="pill">Pill</option></select>
-        <input type="text" class="main" value="${esc(f.main)}" placeholder="Main text">
+        <select><option value="bar">Bar</option><option value="pill">Pill</option><option value="box">Box</option></select>
+        ${f.kind === 'box'
+          ? `<input type="text" class="boxname" value="${esc([f.top, f.bottom === 'dialog' ? 'dialog' : f.bottom].filter(Boolean).join(' - '))}" disabled>`
+          : `<input type="text" class="main" value="${esc(f.main)}" placeholder="Main text">`}
       </div>
+      ${f.kind === 'box' ? `<textarea class="main boxtext" rows="${Math.min(14, Math.max(4, (f.main || '').split('\n').length + 1))}"
+        placeholder="Type the lines here. An empty line starts a new box; long text is split into boxes of 3 lines by itself.">${esc(f.main)}</textarea>
+        <div class="hint">Each box is one image. Empty line = new box.</div>` : ''}
       <div class="small-row">
         <input type="text" class="top" value="${esc(f.top)}" placeholder="Small text above">
         <input type="text" class="bottom" value="${esc(f.bottom)}" placeholder="Small text below">
@@ -305,7 +312,11 @@ function buildCard(f, i) {
     f.include = e.target.checked; el.classList.toggle('off', !f.include);
     updateCounts();
   };
-  sel.onchange = e => { f.kind = e.target.value; el.classList.toggle('bar', f.kind === 'bar'); el.classList.toggle('pill', f.kind === 'pill'); refresh(); };
+  sel.onchange = e => {
+    const was = f.kind; f.kind = e.target.value;
+    if (was === 'box' || f.kind === 'box') { renderList(); return; }   // text box <-> single line
+    el.classList.toggle('bar', f.kind === 'bar'); el.classList.toggle('pill', f.kind === 'pill'); refresh();
+  };
   for (const k of ['main', 'top', 'bottom']) el.querySelector('.' + k).oninput = e => { f[k] = e.target.value; refresh(); };
   el.querySelector('.acts').onclick = e => {
     const a = e.target.dataset.a; if (!a) return;
@@ -328,7 +339,11 @@ function updateCard(f) {
 
 async function footerPreview(f, img) {
   const r = await postJSON('/api/preview', { kind: f.kind, main: f.main, top: f.top, bottom: f.bottom });
-  if (r.ok) { const old = img.src; img.src = URL.createObjectURL(await r.blob()); if (old) URL.revokeObjectURL(old); }
+  if (r.ok) {
+    f._n = Number(r.headers.get('X-Images') || 1);
+    const old = img.src; img.src = URL.createObjectURL(await r.blob()); if (old) URL.revokeObjectURL(old);
+    updateCounts();
+  }
 }
 
 // ---------- music sheet panel ----------

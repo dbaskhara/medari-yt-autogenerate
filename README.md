@@ -25,6 +25,15 @@ Keep the black window open while you use the app, and close it when you're done.
 | `Pembacaan Alkitab` → `Bacaan I …`, `Bacaan II …` | **Pill** per reading: Pembacaan Alkitab / III Yohanes 1:1-12 / Bacaan 1 |
 | `Khotbah` | **Pill**: Khotbah / preacher name from "dilayankan oleh …" |
 | Songs inside the text (e.g. `KJ 472 "Haleluya"`) | Offered as a pill, **unticked** |
+| PF / U dialog, e.g. in `Pengutusan & Berkat` | **Box** footers: one image per PF + U pair, as on the stream. Ticked for Pengutusan; other sections with a dialog (Votum, Berita Anugerah) are offered unticked |
+| Song without a number, e.g. `nyanyian "Kudaki Daki Gunung …"` | **Box** footers with the lyrics. They are read from the PDF when printed there, and reused when the song is sung again later. If the lyrics aren't in the PDF, the item is unticked and you type them in |
+
+**Box footers** use the rounded light box from the CorelDRAW template, with the bar behind it. On the page, a box item has a text area:
+- an **empty line** starts a new box (a new image);
+- longer text is wrapped and split into boxes of 3 lines by itself;
+- when one speaker's text runs into the next box, that box starts with "PF : " again.
+
+The preview shows every image the item will make.
 
 ## Design files
 

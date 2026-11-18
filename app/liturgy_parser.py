@@ -30,7 +30,7 @@ ROMAN = {"I": 1, "II": 2, "III": 3, "IV": 4}
 
 @dataclass
 class Footer:
-    kind: str                 # "bar" or "pill"
+    kind: str                 # "bar", "pill" or "box" (dialog / lyrics box; main holds the lines)
     main: str
     top: str = ""
     bottom: str = ""
@@ -137,6 +137,94 @@ def _classify(header, body_after):
     return [Footer("bar", name, source=header)]
 
 
+SPEAKER_RE = re.compile(r"^(PF|U|MJ\s*\d*|Imam|Pnt\.?|L|P|J)\s*:\s*(.*)$")
+SUNG_RE = re.compile(r"(?:nyanyi\w*|menyanyikan|lagu|pujian)\s+[\"“”]([^\"“”]{4,80})[\"“”]", re.IGNORECASE)
+
+
+def _dialog(body):
+    """PF / U turns of a section: [(speaker, [lines])]. Stops at stage directions."""
+    turns = []
+    for line in body:
+        line = line.replace("  ", " ").strip()
+        m = SPEAKER_RE.match(line)
+        if m:
+            spk = re.sub(r"\s+", "", m.group(1))
+            text = m.group(2).strip()
+            if not text or re.match(r"(?:menyanyikan|bernyanyi)\b", text, re.IGNORECASE):
+                break
+            turns.append((spk, [STAGE_RE.sub("", text).strip()]))
+        elif turns and line and line[0] not in "(#~*" and not line.isupper():
+            turns[-1][1].append(line)
+        elif turns:
+            break
+    clean = []
+    for spk, lines in turns:   # drop stage directions in brackets, also over several lines
+        # "(langsung disambut ...)" goes, an abbreviation like "(KKH)" stays
+        text = re.sub(r"\s*\((?![A-Z0-9 .,]{1,12}\))[^)]*\)", "", "\n".join(lines), flags=re.S)
+        text = re.sub(r"\s*\((?![A-Z0-9 .,]{1,12}\)).*", "", text, flags=re.S)
+        lines = [l.strip() for l in text.split("\n") if l.strip()]
+        if lines:
+            clean.append((spk, lines))
+    return clean
+
+
+def _lyrics(body, end_line):
+    """Lines of a song printed after the instruction that names it; wrap-broken lines
+    (starting with a small letter) are joined again."""
+    i = end_line
+    while i < len(body) and not body[i].rstrip().endswith("."):   # rest of the instruction
+        i += 1
+    out = []
+    for line in body[i + 1:]:
+        line = line.strip()
+        if not line or line.isdigit():
+            continue
+        if line[0] in "(#~*" or SPEAKER_RE.match(line) or line.isupper():
+            break
+        if out and line[0].islower():
+            out[-1] += " " + line
+        else:
+            out.append(line)
+    return out
+
+
+def _boxes(section, body, known_lyrics):
+    """Box footers for a section: the PF/U dialog (if the congregation answers) and
+    songs sung without a song number, with their lyrics when the PDF prints them."""
+    out = []
+    turns = _dialog(body)
+    if any(s == "U" for s, _ in turns):
+        paras, cur = [], []
+        for spk, lines in turns:
+            text = [f"{spk} : {lines[0]}"] + lines[1:]
+            if spk == "U" and cur and len(cur) + len(text) <= 3:
+                cur += text
+            else:
+                if cur:
+                    paras.append(cur)
+                cur = text
+        if cur:
+            paras.append(cur)
+        out.append(Footer("box", "\n\n".join("\n".join(p) for p in paras), top=section or "Dialog",
+                          bottom="dialog", include=bool(re.search(r"pengutusan", section, re.IGNORECASE)),
+                          source=f"{section}: PF / U dialog"))
+    joined, starts = "", []
+    for line in body:
+        starts.append(len(joined))
+        joined += line + " "
+    for m in SUNG_RE.finditer(joined):
+        if INLINE_SONG_RE.search(m.group(0)):
+            continue
+        title = _clean(m.group(1))
+        end_line = max(i for i, s in enumerate(starts) if s < m.end())
+        lyrics = _lyrics(body, end_line) or known_lyrics.get(title.lower(), [])
+        if lyrics:
+            known_lyrics[title.lower()] = lyrics
+        out.append(Footer("box", "\n".join(lyrics), top=section or "Lagu", bottom=title, include=bool(lyrics),
+                          source=f"Song “{title}”" + ("" if lyrics else " - lyrics not in the PDF, type them in")))
+    return out
+
+
 def parse(pdf_path):
     doc = pymupdf.open(pdf_path)
     svc = Service()
@@ -181,14 +269,28 @@ def parse(pdf_path):
         for i, l in enumerate(lines):
             if i in used:
                 continue
+            entries.append((pno, l[0] + 0.01, "text", l[2]))
             for m in INLINE_SONG_RE.finditer(l[2]):
                 entries.append((pno, l[0], "inline", (l[2], m)))
 
     entries.sort(key=lambda e: (e[0], e[1]))
+    # the full text of each section (until the next blue band, also across pages)
+    bodies, current = {}, None
+    for n, (_, _, kind, payload) in enumerate(entries):
+        if kind == "header":
+            current = n
+            bodies[n] = []
+        elif kind == "text" and current is not None:
+            bodies[current].append(payload)
     seen_songs = set()   # "KJ 413" style keys, so a song is only offered once
-    for _, _, kind, payload in entries:
+    known_lyrics = {}    # song title -> lyrics, for a song sung again later
+    for n, (_, _, kind, payload) in enumerate(entries):
+        if kind == "text":
+            continue
         if kind == "header":
             new = _classify(*payload)
+            name = new[0].main if new and new[0].kind == "bar" else ""
+            new += _boxes(name, bodies.get(n, []), known_lyrics)
             for f in new:
                 k = re.match(rf"({SONG_BOOKS})\s*(\d+[a-z]?)", f.main, re.IGNORECASE)
                 if k:

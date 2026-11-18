@@ -102,11 +102,14 @@ def api_thumb_preview():
 @app.post("/api/preview")
 def api_preview():
     d = request.get_json(force=True)
-    img = footer_render.preview(d.get("kind", "bar"), d.get("main", ""), d.get("top", ""), d.get("bottom", ""))
+    kind = d.get("kind", "bar")
+    img = footer_render.preview(kind, d.get("main", ""), d.get("top", ""), d.get("bottom", ""))
     buf = io.BytesIO()
     img.save(buf, "JPEG", quality=85)
     buf.seek(0)
-    return send_file(buf, mimetype="image/jpeg")
+    resp = send_file(buf, mimetype="image/jpeg")
+    resp.headers["X-Images"] = str(len(footer_render.box_pages(d.get("main", ""))) if kind == "box" else 1)
+    return resp
 
 
 def _folder_name(date_text):
@@ -206,7 +209,15 @@ def api_generate():
             except Exception as e:
                 return jsonify(error=f"{e}"), 400
     for n, (footer, sheet, it) in enumerate(jobs, 1):
-        if footer:
+        if footer and footer.get("kind") == "box":
+            pages = footer_render.render_boxes(footer["main"])
+            what = footer.get("bottom") or "box"
+            label = footer_render.safe_name(f"{footer.get('top') or 'Box'} - {what}")
+            for j, img in enumerate(pages):
+                name = f"{n:02d}{chr(97 + j)} - {label} ({j + 1} of {len(pages)}).png"
+                img.save(folder / name, optimize=True)
+                names.append(name)
+        elif footer:
             img = footer_render.render(footer.get("kind", "bar"), footer["main"].strip(),
                                        (footer.get("top") or "").strip(), (footer.get("bottom") or "").strip())
             label = footer["main"] if footer.get("kind") == "bar" else f"{footer.get('top') or ''} - {footer['main']}"
