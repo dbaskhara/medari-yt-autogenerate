@@ -813,8 +813,14 @@ function showResult(job) {
       <button data-open="date">Buka folder ${esc(job.rel)}</button>
       <button data-zip>Unduh ZIP</button>
     </div>
-    <div class="tip"><b>Untuk OBS:</b> arahkan sumber OBS ke folder <code>output\\Minggu Ini</code> cukup sekali. Isinya diganti otomatis setiap minggu.
-      Thumbnail dan video selalu bernama sama (<code>00 - Thumbnail 1920.png</code>, <code>00 - Countdown Loop.mp4</code>), jadi sumbernya tidak perlu diubah lagi.
+    ${(job.locked || []).length ? `<div class="check" style="margin-top:12px"><span class="ic">⚠</span><span class="tx">
+      File ini sedang dipakai OBS, jadi belum diganti di <code>Minggu Ini</code>: ${job.locked.map(esc).join(', ')}.
+      Sembunyikan / jeda sumber itu di OBS (atau tutup OBS), lalu klik “Buat semua” lagi.</span></div>` : ''}
+    <div class="tip"><b>Untuk OBS</b> (cukup diatur sekali, isinya diganti otomatis setiap minggu):<br>
+      <code>Minggu Ini\\Footer</code> = footer dan kotak teks, urut sesuai ibadah ·
+      <code>Minggu Ini\\Lagu</code> = slide lagu ·
+      <code>Minggu Ini\\Lagu Persembahan</code> = slide lagu dengan QR ·
+      <code>Minggu Ini\\00 - Countdown Loop.mp4</code> dan <code>00 - Thumbnail 1920.png</code>.
       ${job.archived ? `<br>Hasil sebelumnya untuk tanggal ini tidak dihapus, tetapi dipindah ke <code>${esc(job.archived)}</code>.` : ''}</div>
     <div class="gallery"></div>`;
   out.querySelector('[data-open="live"]').onclick = () => postJSON('/api/open-folder', { folder: job.live });
