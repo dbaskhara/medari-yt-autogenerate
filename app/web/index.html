@@ -224,7 +224,7 @@ async function upload(f) {
 
 function newSheet(f, include) {
   return { include, status: 'waiting', key: '', name: '', slides: [], selected: [], label: f.top || '',
-           qr: /persembahan/i.test(f.top || ''), note: '', error: '' };
+           qr: /persembahan/i.test(f.top || ''), full: f.layout === 'full', note: '', error: '' };
 }
 
 // fetch songs one by one (PowerPoint handles one file at a time)
@@ -378,7 +378,8 @@ function fillSheet(f, slot) {
     ${s.note && s.include ? `<div class="note">${esc(s.note)}</div>` : ''}
     <div class="opts">
       <label>Label <input type="text" class="label" value="${esc(s.label)}" placeholder="Pujian Pembuka"></label>
-      <label><input type="checkbox" class="qr" ${s.qr ? 'checked' : ''}> Show offering QR</label>
+      <label><input type="checkbox" class="qr" ${s.qr ? 'checked' : ''} ${s.full ? 'disabled' : ''}> Show offering QR</label>
+      <label title="The song slide fills the screen, without the camera box and label (as during Bujana Suci)"><input type="checkbox" class="full" ${s.full ? 'checked' : ''}> Full screen (no camera)</label>
     </div>
     <div class="body">
       <div class="thumbs"></div>
@@ -392,6 +393,7 @@ function fillSheet(f, slot) {
   const refreshBig = debounce(() => sheetPreview(f, big), 300);
   box.querySelector('.label').oninput = e => { s.label = e.target.value; refreshBig(); };
   box.querySelector('.qr').onchange = e => { s.qr = e.target.checked; refreshBig(); };
+  box.querySelector('.full').onchange = e => { s.full = e.target.checked; updateCard(f); };
   const thumbs = box.querySelector('.thumbs');
   for (const sl of s.slides) {
     const t = document.createElement('div');
@@ -430,7 +432,7 @@ function fillSheet(f, slot) {
 async function sheetPreview(f, img) {
   const s = f.sheet;
   if (!s.selected.length) return;
-  const r = await postJSON('/api/sheet-preview', { key: s.key, index: s.selected[0], label: s.label, qr: s.qr });
+  const r = await postJSON('/api/sheet-preview', { key: s.key, index: s.selected[0], label: s.label, qr: s.qr, full: s.full });
   if (r.ok) { const old = img.src; img.src = URL.createObjectURL(await r.blob()); if (old) URL.revokeObjectURL(old); }
 }
 
@@ -521,7 +523,7 @@ $('#gen').onclick = async () => {
   const btn = $('#gen'); btn.disabled = true; const label = btn.textContent; btn.textContent = 'Generating ...';
   $('#result').textContent = ''; clearError();
   const payload = { ...svc, thumb, footers: svc.footers.map(f => ({ ...f,
-    sheet: f.sheet && f.sheet.include && f.sheet.key ? { include: true, key: f.sheet.key, slides: f.sheet.selected, label: f.sheet.label, qr: f.sheet.qr } : null })) };
+    sheet: f.sheet && f.sheet.include && f.sheet.key ? { include: true, key: f.sheet.key, slides: f.sheet.selected, label: f.sheet.label, qr: f.sheet.qr, full: f.sheet.full } : null })) };
   try {
     const r = await postJSON('/api/generate', payload);
     const data = await r.json();

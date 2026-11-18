@@ -49,6 +49,13 @@ def _layer(name):
     return Image.open(ASSETS / name).convert("RGBA")
 
 
+@lru_cache(maxsize=1)
+def _pill_top():
+    p = _layer("pill.png").copy()
+    p.paste((0, 0, 0, 0), (0, 960, W, H))     # nothing below the bar (cut where the bar covers it)
+    return p
+
+
 def _fit(path, size, text, max_w):
     """Largest size <= size so that text fits in max_w."""
     while size > 14:
@@ -67,12 +74,14 @@ def _text(draw, y, text, path, size, max_w):
 def render(kind, main, top="", bottom=""):
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     if kind == "pill":
-        img.alpha_composite(_layer("pill.png"))
+        # without a bottom label only the top half of the pill shows (as on the stream)
+        img.alpha_composite(_layer("pill.png") if bottom else _pill_top())
     img.alpha_composite(_layer("bar.png"))
     d = ImageDraw.Draw(img)
     if kind == "pill":
         _text(d, PILL_TOP_BASELINE, top, PILL_FONT, PILL_SMALL_SIZE, PILL_MAX_W_SMALL)
-        _text(d, PILL_MAIN_BASELINE, main, PILL_FONT, PILL_MAIN_SIZE, PILL_MAX_W_MAIN)
+        # top-only pill: the main text is as big as on a bar (11 Okt 2026 stream)
+        _text(d, PILL_MAIN_BASELINE, main, PILL_FONT, PILL_MAIN_SIZE if bottom else BAR_SIZE, PILL_MAX_W_MAIN)
         _text(d, PILL_BOTTOM_BASELINE, bottom, PILL_FONT, PILL_SMALL_SIZE, PILL_MAX_W_SMALL)
     else:
         _text(d, BAR_BASELINE, main, BAR_FONT, BAR_SIZE, BAR_MAX_W)

@@ -41,6 +41,7 @@ class Footer:
     include: bool = True
     source: str = ""          # the PDF text it came from, shown as a hint
     song: dict = None         # {"code": "KJ", "num": "413", "verses": "1, 2"} for songs
+    layout: str = ""          # "full": music sheet full screen, without camera (e.g. songs during Bujana Suci)
 
 
 @dataclass
@@ -201,6 +202,38 @@ def _lyrics(body, end_line):
     return out
 
 
+SUBPOINT_RE = re.compile(r"^([a-h])\.\s+(.+)$")
+BARE_SONG_RE = re.compile(rf"\b(?P<book>{SONG_BOOKS})\s*(?P<num>\d+[a-z]?)(?:\s*:\s*(?P<verses>\d[\d\s,\-–]*))?", re.IGNORECASE)
+
+
+def _subpoints(section, body, songs_seen):
+    """Lettered steps inside a section, e.g. Paladosaning Sakramèn Bujana Suci:
+    a. Pratélan / b. Kidung Panglarap KPJ 314: 1 "..." / c. Paladosaning Roti Pambujanan ...
+    Each step is a pill with the section name on top; songs get a full-screen music sheet."""
+    out = []
+    for line in body:
+        m = SUBPOINT_RE.match(line.strip())
+        if not m:
+            continue
+        text = _clean(m.group(2))
+        s = INLINE_SONG_RE.search(text) or BARE_SONG_RE.search(text)
+        if s:
+            book = re.sub(r"\s+", "", s.group("book")).upper()
+            key = f"{book} {s.group('num')}"
+            label = text[:s.start()].strip(" :–-") or songs_seen.get(key, ("Kidung", ""))[0]
+            label = label[:1].upper() + label[1:]
+            title = _clean(s.groupdict().get("title") or "") or songs_seen.get(key, ("", ""))[1]
+            songs_seen[key] = (label, title)
+            verses = (s.group("verses") or "").strip()
+            out.append(Footer("pill", _song_main(book, s.group("num"), verses), top=label, bottom=title,
+                              source=f"{section}: {m.group(1)}. {text}", layout="full",
+                              song={"code": book, "num": s.group("num"), "verses": verses.replace("–", "-")}))
+        else:
+            name = re.split(r"\s*[➔→]\s*", text)[0].strip(" .")
+            out.append(Footer("pill", name, top=section, source=f"{section}: {m.group(1)}. {text}"))
+    return out
+
+
 def _rows(lines):
     """Rough number of rows the lines take in a box (about 85 characters fit in one row)."""
     return sum(max(1, -(-len(l) // 85)) for l in lines)
@@ -313,6 +346,7 @@ def parse(pdf_path):
             bodies[current].append(payload)
     seen_songs = set()   # "KJ 413" style keys, so a song is only offered once
     known_lyrics = {}    # song title -> lyrics, for a song sung again later
+    subpoint_songs = {}  # "KPJ 278" -> (label, title), for "g. KPJ 278:1" without a title
     for n, (_, _, kind, payload) in enumerate(entries):
         if kind == "text":
             continue
@@ -320,6 +354,11 @@ def parse(pdf_path):
             new = _classify(*payload)
             name = (new[0].main if new[0].kind == "bar" else new[0].top) if new else ""
             new += _boxes(name, bodies.get(n, []), known_lyrics)
+            steps = _subpoints(name, bodies.get(n, []), subpoint_songs)
+            for f in steps:
+                if f.song:
+                    seen_songs.add(f"{f.song['code']} {f.song['num']}")
+            new += steps
             for f in new:
                 k = re.match(rf"({SONG_BOOKS})\s*(\d+[a-z]?)", f.main, re.IGNORECASE)
                 if k:
