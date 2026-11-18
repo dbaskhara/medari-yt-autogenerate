@@ -173,7 +173,7 @@ def api_sheet_preview():
         path = songs.slide_file(d["key"], d["index"])
     except (KeyError, songs.SongError) as e:
         return str(e), 404
-    return _jpeg(sheet_render.render(path, d.get("label", ""), bool(d.get("qr")), bool(d.get("full"))), 640)
+    return _jpeg(sheet_render.render(path, d.get("label", ""), bool(d.get("qr"))), 640)
 
 
 @app.post("/api/generate")
@@ -230,7 +230,7 @@ def api_generate():
                     path = songs.slide_file(sheet["key"], idx)
                 except songs.SongError:
                     continue
-                img = sheet_render.render(path, sheet.get("label", ""), bool(sheet.get("qr")), bool(sheet.get("full")))
+                img = sheet_render.render(path, sheet.get("label", ""), bool(sheet.get("qr")))
                 song_name = footer_render.safe_name(it.get("main") or sheet["key"])
                 name = f"{n:02d}{chr(97 + j)} - Lagu - {song_name} ({j + 1} of {len(sheet['slides'])}).png"
                 img.save(folder / name, optimize=True)

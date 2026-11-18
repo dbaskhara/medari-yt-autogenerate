@@ -101,22 +101,7 @@ def _draw_qr_card(img):
         img.alpha_composite(qr, (bx0 + 20, by0 + 20))
 
 
-FULL_BG = (166, 166, 166, 255)          # grey sides of the full-screen sheet (11 Okt 2026, Bujana Suci)
-
-
-def render_full(slide_path):
-    """Full-screen sheet without camera: the slide as big as possible, grey at the sides."""
-    img = Image.new("RGBA", (W, 1080), FULL_BG)
-    slide = Image.open(slide_path).convert("RGBA")
-    scale = min(W / slide.width, 1080 / slide.height)
-    slide = slide.resize((max(1, round(slide.width * scale)), max(1, round(slide.height * scale))), Image.LANCZOS)
-    img.alpha_composite(slide, ((W - slide.width) // 2, (1080 - slide.height) // 2))
-    return img
-
-
-def render(slide_path, label="", with_qr=False, full=False):
-    if full:
-        return render_full(slide_path)
+def render(slide_path, label="", with_qr=False):
     img = _frame(with_qr).copy()
     x0, y0, x1, y1 = SHEET_BOX
     bw, bh = x1 - x0, y1 - y0

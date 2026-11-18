@@ -41,7 +41,6 @@ class Footer:
     include: bool = True
     source: str = ""          # the PDF text it came from, shown as a hint
     song: dict = None         # {"code": "KJ", "num": "413", "verses": "1, 2"} for songs
-    layout: str = ""          # "full": music sheet full screen, without camera (e.g. songs during Bujana Suci)
 
 
 @dataclass
@@ -209,7 +208,7 @@ BARE_SONG_RE = re.compile(rf"\b(?P<book>{SONG_BOOKS})\s*(?P<num>\d+[a-z]?)(?:\s*
 def _subpoints(section, body, songs_seen):
     """Lettered steps inside a section, e.g. Paladosaning Sakramèn Bujana Suci:
     a. Pratélan / b. Kidung Panglarap KPJ 314: 1 "..." / c. Paladosaning Roti Pambujanan ...
-    Each step is a pill with the section name on top; songs get a full-screen music sheet."""
+    Each step is a pill with the section name on top; song steps load their music sheet."""
     out = []
     for line in body:
         m = SUBPOINT_RE.match(line.strip())
@@ -226,7 +225,7 @@ def _subpoints(section, body, songs_seen):
             songs_seen[key] = (label, title)
             verses = (s.group("verses") or "").strip()
             out.append(Footer("pill", _song_main(book, s.group("num"), verses), top=label, bottom=title,
-                              source=f"{section}: {m.group(1)}. {text}", layout="full",
+                              source=f"{section}: {m.group(1)}. {text}",
                               song={"code": book, "num": s.group("num"), "verses": verses.replace("–", "-")}))
         else:
             name = re.split(r"\s*[➔→]\s*", text)[0].strip(" .")
