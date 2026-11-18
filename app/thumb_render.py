@@ -7,7 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFont
 
 ASSETS = Path(__file__).resolve().parent / "assets"
 FONTS = ASSETS / "fonts"
@@ -24,6 +24,7 @@ BAR_LEFT, BAR_RIGHT = 108, 1868
 INK = (17, 17, 17)
 
 PHOTO_TOP, PHOTO_CX, PHOTO_MIN_W, PHOTO_MAX_W = 300, 285, 560, 760
+EDGE_X0, EDGE_SLOPE = 727.3, -0.2682   # diagonal edge of the grey panel, measured on thumb_bg.png
 
 
 def _font(name, size):
@@ -92,7 +93,21 @@ def _place_photo(img, photo, zoom=1.0, dx=0, dy=0):
     p = p.resize((max(1, round(p.width * scale)), max(1, round(p.height * scale))), Image.LANCZOS)
     x = round(PHOTO_CX - p.width / 2 + dx)
     y = round(max(PHOTO_TOP, H - p.height) + dy)
-    img.paste(p, (x, y), p)
+    layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    layer.paste(p, (x, y), p)
+    # the white side is in front: keep the photo inside the grey panel only
+    alpha = ImageChops.multiply(layer.getchannel("A"), _panel_mask())
+    img.paste(layer, (0, 0), alpha)
+
+
+@lru_cache(maxsize=1)
+def _panel_mask():
+    """Grey left panel up to its diagonal edge (x = EDGE_X0 + EDGE_SLOPE * y), anti-aliased."""
+    s = 4
+    m = Image.new("L", (W * s, H * s), 0)
+    ImageDraw.Draw(m).polygon([(0, 0), (EDGE_X0 * s, 0), ((EDGE_X0 + EDGE_SLOPE * H) * s, H * s), (0, H * s)],
+                              fill=255)
+    return m.resize((W, H), Image.LANCZOS)
 
 
 def render(date_line, theme, readings, preacher, time_lang, photo=None, zoom=1.0, dx=0, dy=0):
