@@ -45,8 +45,8 @@ def export_slides(ppt_path, out_dir):
             capture_output=True, text=True, timeout=300, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     if r.returncode != 0 or not (out_dir / "slides.json").exists():
         msg = (r.stderr or r.stdout or "").strip().splitlines()
-        hint = " Is Microsoft PowerPoint installed on this PC?" if "PowerPoint" in (r.stderr or "") or "COM" in (r.stderr or "") else ""
-        raise SongError(f"Could not open the slides with PowerPoint.{hint} {msg[-1] if msg else ''}".strip())
+        hint = " Apakah Microsoft PowerPoint terpasang di PC ini?" if "PowerPoint" in (r.stderr or "") or "COM" in (r.stderr or "") else ""
+        raise SongError(f"Slide tidak bisa dibuka dengan PowerPoint.{hint} {msg[-1] if msg else ''}".strip())
 
 
 def _ink(path):
@@ -72,15 +72,26 @@ def analyse(key, verses_text):
     end = lyrics_at or (max(s["index"] for s in slides) + 1)
     notation = [s["index"] for s in slides if 1 < s["index"] < end and s["ink"] >= 3.0]
     verses = parse_verses(verses_text)
+    verse_of = {}
     if verses and notation and max(verses) <= len(notation):
         selected = [notation[v - 1] for v in verses]
+        verse_of = {notation[v - 1]: v for v in verses}
         note = ""
+        reason = ", ".join(f"ayat {v} → slide {notation[v - 1]}" for v in verses).capitalize() +             f" (lagu ini punya {len(notation)} slide not)"
+    elif verses:
+        selected = list(notation)
+        note = (f"Ayat {verses_text.strip()} tidak bisa dicocokkan satu per satu dengan {len(notation)} slide not, "
+                "jadi semua slide not dipilih. Mohon dicek.")
+        reason = note
     else:
         selected = list(notation)
-        note = "Verses could not be matched one-to-one; all notation slides are selected - please check." if verses else ""
+        note = ""
+        reason = "Tata Ibadah tidak menyebut ayat, jadi semua slide not dipilih."
     for s in slides:
         s["kind"] = "lyrics" if s["index"] == lyrics_at else ("notation" if s["index"] in notation else "other")
-    return {"slides": slides, "selected": selected, "note": note}
+        if s["index"] in verse_of:
+            s["verse"] = verse_of[s["index"]]
+    return {"slides": slides, "selected": selected, "note": note, "reason": reason}
 
 
 def prepare(code, num, verses_text):

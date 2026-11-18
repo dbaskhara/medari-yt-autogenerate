@@ -108,11 +108,11 @@ def fetch_song(code, num):
             return p, meta.read_text(encoding="utf-8") if meta.exists() else p.name
     hit = find_song(code, num)
     if not hit:
-        return None, f"{code} {num} was not found in the song library"
+        return None, f"{code} {num} tidak ada di perpustakaan lagu"
     name, fid = hit
     data = _get(f"https://drive.usercontent.google.com/download?id={fid}&export=download&confirm=t", timeout=120)
     if not data.startswith(b"\xd0\xcf\x11\xe0") and not data.startswith(b"PK"):
-        return None, f"Download of {name} failed (Drive returned a web page)"
+        return None, f"Gagal mengunduh {name} (Drive mengirim halaman web)"
     path = SONG_CACHE / f"{key}{Path(name).suffix.lower()}"
     path.write_bytes(data)
     path.with_suffix(".name").write_text(name, encoding="utf-8")

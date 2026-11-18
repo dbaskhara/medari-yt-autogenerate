@@ -88,16 +88,34 @@ def render(kind, main, top="", bottom=""):
     return img
 
 
-def preview(kind, main, top="", bottom="", width=960):
-    """Bottom strip only, on a dark background, for the web page.
-    A dialog / lyrics box gives one strip per image, stacked."""
+@lru_cache(maxsize=1)
+def camera_bg():
+    """A frame of the church camera (11 Okt 2026 stream), so previews look like the live stream."""
+    p = ASSETS / "preview_bg.jpg"
+    if p.exists():
+        return Image.open(p).convert("RGBA").resize((W, H))
+    return Image.new("RGBA", (W, H), (38, 41, 46, 255))
+
+
+def preview(kind, main, top="", bottom="", width=960, full=False):
+    """For the web page, over the camera picture: the bottom strip (several strips stacked for
+    a dialog / lyrics box), or with full=True the whole 16:9 picture of the first image."""
     imgs = render_boxes(main) if kind == "box" else [render(kind, main, top, bottom)]
     if not imgs:
         imgs = [render_box([])]
+    if full:
+        out = camera_bg().copy()
+        out.alpha_composite(imgs[0])
+        return out.convert("RGB").resize((width, round(H * width / W)), Image.LANCZOS)
     y0 = BOX[1] - 12 if kind == "box" else 830
-    strips = [im.crop((0, y0, W, H)) for im in imgs]
+    cam = camera_bg().crop((0, y0, W, H))
+    strips = []
+    for im in imgs:
+        s = cam.copy()
+        s.alpha_composite(im.crop((0, y0, W, H)))
+        strips.append(s)
     sh = strips[0].height
-    bg = Image.new("RGBA", (W, sh * len(strips) + 8 * (len(strips) - 1)), (38, 41, 46, 255))
+    bg = Image.new("RGBA", (W, sh * len(strips) + 8 * (len(strips) - 1)), (255, 255, 255, 255))
     for i, s in enumerate(strips):
         bg.alpha_composite(s, (0, i * (sh + 8)))
     h = round(bg.height * width / W)

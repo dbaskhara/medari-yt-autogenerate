@@ -1,14 +1,21 @@
-# Medari Live Footer
+# Medari Live Kit
 
-Turns the weekly **Tata Ibadah** PDF of GKJ Medari-Sleman into the footer PNGs used in OBS during the Sunday live stream.
+Turns the weekly **Tata Ibadah** PDF of GKJ Medari-Sleman into everything OBS needs for the Sunday live stream: footers, music-sheet slides, dialog and lyrics boxes, the YouTube thumbnail and the countdown video. The app's screens are in Bahasa Indonesia.
 
 ## Weekly use
 
-1. Double-click **`Generate Footer.bat`**. The app opens in your browser.
+1. Double-click **`Buat Aset Live.bat`**. The app opens in your browser.
 2. Drop the Tata Ibadah PDF on the page.
-3. Check the list and fix any text. Each row shows a live preview. You can tick or untick a row, switch Bar/Pill, reorder, or add a footer.
-4. Click **Generate**. The PNGs (1920×1080, transparent) are saved in `output\<date> Footer\` and numbered in service order. A ZIP is made too.
-5. In OBS, add the PNGs as Image sources, or use an Image Slide Show source.
+3. Read **Ringkasan → Perlu dicek**. It lists only what needs a look: a missing preacher photo, a song not found in the library, a verse choice that is a guess, or lyrics to type. Click **Lihat** to jump there. When it says *Semua siap dibuat*, the week is ready.
+4. Optional: in **Urutan Ibadah**, click a row to open it and change its text, its type (*Judul*, *Judul + keterangan*, *Kotak teks*), or its song slides. Click a preview to see it full screen. The chips filter the list (*Perlu dicek*, *Lagu*, *Tidak dipakai*).
+5. Click **Buat semua**. A progress bar shows each file. At the end you get a gallery of everything that was made.
+
+**Where the files go**
+- `output\Minggu Ini\`: always this week's files. **Point OBS at this folder once.** Its contents are replaced every week, so the OBS sources never need to change. The thumbnail and the video always have the same names (`00 - Thumbnail 1920.png`, `00 - Countdown Loop.mp4`).
+- `output\<date> Footer\`: the same files kept per Sunday, plus a ZIP.
+- `output\Arsip\`: generating again for the same Sunday never deletes anything. The earlier files are moved here.
+
+**Your edits are saved automatically** in the browser for each PDF. Closing the page or opening the same PDF again brings them back. Use *Mulai lagi dari PDF* to start over.
 
 Keep the black window open while you use the app, and close it when you're done.
 
@@ -36,7 +43,7 @@ Keep the black window open while you use the app, and close it when you're done.
 
 **Javanese services (Basa Jawa)** are read the same way. Role codes like (PP), (Prd1), (Prd3 & PP) and stage directions like (Pasamuwan Jumeneng) are removed. *Pamaosing Pangandika* gives one pill per *Waosan*, and *Panyuraosing Pangandika* gives the preacher pill. The preacher comes from "kaladosaken déning …". When the preacher is the church's own pastor, the thumbnail shows the congregation from the title page, e.g. "(Induk Murangan GKJ Medari-Sléman)". The thumbnail says "Basa Jawa" and joins the readings with ";", as in the Canva pages.
 
-**Box footers** use the rounded light box from the CorelDRAW template, with the bar behind it. On the page, a box item has a text area:
+**Kotak teks (box) footers** use the rounded light box from the CorelDRAW template, with the bar behind it. On the page, a box item has a text area:
 - an **empty line** starts a new box (a new image);
 - longer text is wrapped and split into boxes of 3 lines by itself;
 - when one speaker's text runs into the next box, that box starts with "PF : " again.
@@ -59,7 +66,7 @@ For every song in the Tata Ibadah, the app:
 4. pre-selects the slides for the sung verses. For `KJ 27: 1, 3` it picks the #1 and #3 slides. When verses can't be matched one-to-one, all notation slides are selected.
 5. places each slide in **Frame Slide 4:3**, with the section name ("Pujian Pembuka") as the label. The camera area stays transparent for OBS.
 
-On the page, click slide thumbnails to change the choice. For **Pujian Pengiring Persembahan** the offering QRIS card is added (the "Show offering QR" box). Songs not found in the library show a message, and you can add your own images instead.
+On the page, click slide thumbnails to change the choice. Each slide shows which verse it was picked for, and *Kenapa slide ini?* explains the choice (e.g. "Ayat 1 → slide 2, ayat 3 → slide 4"). For **Pujian Pengiring Persembahan** the offering QRIS card is added (*Tampilkan QR persembahan*). Songs not found in the library show a message, and you can add your own images instead.
 
 Output files sit next to the footers in service order: `17 - Pujian Pengiring Persembahan - KJ 450 1-4.png`, then `17a … (1 of 4).png`, `17b …`, and so on.
 
@@ -67,14 +74,14 @@ The QRIS image (`app/assets/qr_persembahan.png`) was rebuilt from the stream. Th
 
 ## YouTube thumbnail
 
-The **YouTube thumbnail** panel at the top of the page fills the Canva design "Thumbnail Youtube 2026" from the Tata Ibadah:
+The **Thumbnail & Video** panel fills the Canva design "Thumbnail Youtube 2026" from the Tata Ibadah:
 
 - top line: "Ibadah Minggu Biasa, 15 November 2026"
 - theme: big and bold. Press Enter in the box to choose where a new line starts.
 - readings: Bacaan I and II
 - preacher (church) on the left of the bottom bar, "08:00 WIB • Bahasa Indonesia" on the right
 
-**Preacher photo:** the app searches the public photo folder on Google Drive (and its sub-folder *PNG PF NEW*) for the preacher's name, then shows the matching photos to click. If the preacher isn't there, use **+ Own photo**. A cut-out PNG with a transparent background looks best. Use the sliders to change the photo's size and position.
+**Preacher photo:** the app searches the public photo folder on Google Drive (and its sub-folder *PNG PF NEW*) for the preacher's name, then shows the matching photos to click. If the preacher isn't there, use **+ Foto sendiri**. A cut-out PNG with a transparent background looks best. Use the sliders to change the photo's size and position.
 
 You get two files: `00 - Thumbnail YouTube.jpg` (1280×720, for YouTube) and `00 - Thumbnail 1920.png` (for the slide loop in OBS).
 
@@ -82,7 +89,7 @@ The background is `app/assets/thumb_bg.png`: the Canva page with all text and th
 
 ## Countdown video (loop before the service)
 
-When **Countdown video** is ticked in the thumbnail panel, Generate also makes `00 - Countdown Loop.mp4` (1920×1080, 30 fps, no sound). It plays:
+When **Video countdown** is ticked in the thumbnail panel, *Buat semua* also makes `00 - Countdown Loop.mp4` (1920×1080, 30 fps, no sound). It plays:
 
 thumbnail (5 s) → fade → the *Bahan Ads Mentah* video (QRIS offering + social media) → fade → thumbnail (5 s)
 

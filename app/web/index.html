@@ -1,542 +1,839 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Medari Live Footer</title>
+<title>Medari Live Kit</title>
 <style>
   :root {
-    --bg: #f4f5f7; --card: #fff; --ink: #1d2025; --muted: #6b7280; --line: #e3e5e9;
-    --accent: #1f6feb; --accent-ink: #fff; --ok: #1a7f37; --warn: #b42318; --soft: #f7f8fa;
+    --bg: #f3f4f6; --card: #fff; --ink: #111827; --muted: #4b5563; --faint: #6b7280; --line: #d9dde3;
+    --accent: #1d5fd1; --accent-soft: #e8f0fd; --ok: #15803d; --ok-soft: #e7f6ec;
+    --warn: #b45309; --warn-soft: #fff4e0; --err: #b42318; --err-soft: #fdecea; --soft: #f8f9fb;
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font: 15px/1.45 "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink); }
-  header { padding: 20px 24px 8px; max-width: 1100px; margin: 0 auto; }
-  h1 { font-size: 22px; margin: 0; }
-  header p { margin: 4px 0 0; color: var(--muted); }
-  main { max-width: 1100px; margin: 0 auto; padding: 12px 24px 120px; }
-  .drop { border: 2px dashed #b8bec8; border-radius: 12px; background: var(--card); padding: 34px; text-align: center; cursor: pointer; transition: .15s; }
-  .drop.over { border-color: var(--accent); background: #eef4ff; }
-  .drop strong { font-size: 17px; }
-  .drop small { display: block; color: var(--muted); margin-top: 6px; }
-  .info { display: none; margin: 16px 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
-  .info b { font-weight: 600; }
-  .info .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px 18px; }
-  .info label { color: var(--muted); font-size: 12px; display: block; }
-  .msg { margin: 12px 0; padding: 10px 14px; border-radius: 8px; display: none; }
-  .msg.err { display: block; background: #fdecea; color: var(--warn); }
-  .toolbar { display: none; align-items: center; justify-content: space-between; margin: 18px 0 8px; }
-  .toolbar h2 { font-size: 16px; margin: 0; }
-  .list { display: flex; flex-direction: column; gap: 10px; }
-  .item { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; grid-template-columns: 34px 1fr 400px; gap: 12px; align-items: center; }
-  .item.off > .num, .item.off > .fields, .item.off > .side img { opacity: .5; }
-  .item .num { font-weight: 600; color: var(--muted); text-align: center; }
-  .item .num input { width: 18px; height: 18px; display: block; margin: 6px auto 0; }
-  .fields { display: grid; gap: 6px; }
-  .row { display: flex; gap: 6px; }
-  input[type=text], select { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; font: inherit; background: #fff; }
-  .fields input.main { font-weight: 600; }
-  select { width: 110px; flex: none; }
-  .small-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .item.bar .small-row, .item.box .small-row { display: none; }
-  .item.box .side img { aspect-ratio: auto; }
-  textarea.boxtext { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; font: inherit; resize: vertical; }
-  .side { display: flex; flex-direction: column; gap: 6px; }
-  .side img { width: 100%; border-radius: 6px; background: #26292e; aspect-ratio: 1920/250; }
-  .side .acts { display: flex; gap: 6px; justify-content: flex-end; }
-  button { font: inherit; border: 1px solid var(--line); background: #fff; border-radius: 7px; padding: 5px 10px; cursor: pointer; }
-  button:hover { background: #f0f2f5; }
-  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); padding: 10px 22px; font-weight: 600; font-size: 16px; }
-  button.primary:hover { filter: brightness(1.08); }
-  button.link { border: 0; background: none; color: var(--accent); padding: 2px 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+  body { margin: 0; font: 16px/1.5 "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { min-height: 40px; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 6px 14px; cursor: pointer; }
+  button:hover { background: #eef0f3; }
   button:disabled { opacity: .5; cursor: default; }
-  .hint { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  button.primary:hover { filter: brightness(1.08); }
+  button.big { min-height: 52px; padding: 10px 28px; font-size: 18px; }
+  button.link { border: 0; background: none; color: var(--accent); padding: 4px 0; min-height: 0; font-weight: 600; }
+  input[type=text], input[type=number], select, textarea { width: 100%; min-height: 42px; padding: 8px 11px; border: 1px solid #c4c9d1; border-radius: 8px; background: #fff; }
+  input:focus, select:focus, textarea:focus { outline: 3px solid #bfd3f7; border-color: var(--accent); }
+  input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--accent); cursor: pointer; flex: none; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  textarea { resize: vertical; line-height: 1.45; }
+  label.field { display: block; font-size: 14px; color: var(--muted); font-weight: 600; margin: 10px 0 4px; }
+  .hint { font-size: 14px; color: var(--muted); }
+  .hidden { display: none !important; }
 
-  /* music sheet panel */
-  .sheet { grid-column: 2 / -1; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 8px; }
-  .sheet .head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .sheet .head label { display: flex; align-items: center; gap: 6px; font-weight: 600; }
-  .sheet .status { color: var(--muted); font-size: 13px; }
-  .sheet .status.err { color: var(--warn); }
-  .sheet .note { color: #9a6700; font-size: 13px; }
-  .sheet .opts { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .sheet .opts input[type=text] { width: 300px; }
-  .sheet .opts label { display: flex; gap: 6px; align-items: center; }
-  .sheet .body { display: grid; grid-template-columns: 1fr 300px; gap: 12px; align-items: start; }
-  .thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-  .thumb { position: relative; cursor: pointer; border: 3px solid transparent; border-radius: 6px; background: #fff; }
-  .thumb img { width: 100%; display: block; border-radius: 3px; aspect-ratio: 4/3; object-fit: contain; background: #fff; }
-  .thumb.sel { border-color: var(--accent); }
-  .thumb .badge { position: absolute; top: -8px; left: -8px; background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; font-size: 14px; font-weight: 700; display: none; align-items: center; justify-content: center; }
-  .thumb.sel .badge { display: flex; }
-  .thumb .cap { font-size: 12px; padding: 2px 0; color: var(--muted); text-align: center; }
-  .upload { aspect-ratio: 4/3; border: 2px dashed #c4c9d1; border-radius: 6px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; color: var(--muted); cursor: pointer; padding: 4px; }
-  .sheet .big img { width: 100%; border-radius: 6px; border: 1px solid var(--line); display: block; background: #26292e; aspect-ratio: 16/9; }
-  .sheet.off .body, .sheet.off .opts { display: none; }
-  .add-sheet { grid-column: 2 / -1; display: flex; gap: 8px; align-items: center; }
-  .add-sheet input { width: 160px !important; }
+  /* top bar */
+  header.top { position: sticky; top: 0; z-index: 20; background: #fff; border-bottom: 1px solid var(--line); }
+  header.top .in { max-width: 1320px; margin: 0 auto; padding: 10px 24px; display: flex; align-items: center; gap: 16px; }
+  header.top h1 { font-size: 20px; margin: 0; white-space: nowrap; }
+  header.top .file { margin-left: auto; color: var(--muted); font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* start screen */
+  .start { max-width: 760px; margin: 48px auto; padding: 0 24px; }
+  .drop { border: 3px dashed #aab2bd; border-radius: 16px; background: var(--card); padding: 56px 32px; text-align: center; cursor: pointer; transition: .15s; }
+  .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+  .drop strong { font-size: 22px; display: block; }
+  .drop span { color: var(--muted); }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 22px; }
+  .steps div { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; font-size: 15px; color: var(--muted); }
+  .steps b { display: block; color: var(--ink); font-size: 16px; }
+
+  /* layout */
+  .layout { max-width: 1320px; margin: 0 auto; padding: 20px 24px 140px; display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 24px; }
+  nav.side { position: sticky; top: 76px; align-self: start; display: flex; flex-direction: column; gap: 4px; }
+  nav.side a { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 10px; color: var(--ink); text-decoration: none; font-weight: 600; }
+  nav.side a:hover { background: #e7eaee; }
+  .count { background: #e5e7eb; color: var(--ink); border-radius: 999px; padding: 1px 9px; font-size: 13px; font-weight: 700; }
+  .count.warn { background: var(--warn); color: #fff; }
+  .count.ok { background: var(--ok); color: #fff; }
+  section.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; margin-bottom: 20px; }
+  section.card > h2 { font-size: 20px; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+
+  /* summary */
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 22px; margin-bottom: 14px; }
+  .facts div span { display: block; font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  .checks { display: flex; flex-direction: column; gap: 8px; }
+  .check { display: flex; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 10px; background: var(--warn-soft); border: 1px solid #f3d19c; }
+  .check.info { background: var(--soft); border-color: var(--line); }
+  .check.ok { background: var(--ok-soft); border-color: #b6e2c4; font-weight: 600; color: var(--ok); }
+  .check .ic { font-size: 20px; width: 24px; text-align: center; }
+  .check .tx { flex: 1; }
+  .banner { padding: 10px 14px; border-radius: 10px; background: var(--accent-soft); border: 1px solid #c4d6f6; margin-bottom: 14px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .msg { margin: 0 0 16px; padding: 12px 16px; border-radius: 10px; background: var(--err-soft); color: var(--err); font-weight: 600; }
 
   /* thumbnail */
-  .thumbbox { display: none; margin: 16px 0; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
-  .thumbbox .head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .thumbbox .head label { display: flex; gap: 8px; align-items: center; font-weight: 600; font-size: 16px; }
-  .thumbbox .body { display: grid; grid-template-columns: 1fr 520px; gap: 16px; align-items: start; }
-  .thumbbox.off .body { display: none; }
-  .tfields { display: grid; gap: 6px; }
-  .tfields label { font-size: 12px; color: var(--muted); }
-  .tfields textarea { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; font: inherit; font-weight: 600; resize: vertical; }
-  .tprev img { width: 100%; aspect-ratio: 16/9; border-radius: 8px; border: 1px solid var(--line); display: block; background: #eee; }
-  .photos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
-  .photo { width: 84px; cursor: pointer; border: 3px solid transparent; border-radius: 6px; background: #e9ebef; text-align: center; font-size: 10px; color: var(--muted); overflow: hidden; }
-  .photo img { width: 100%; height: 96px; object-fit: contain; display: block; }
+  .tgrid { display: grid; grid-template-columns: minmax(0, 1fr) 520px; gap: 22px; align-items: start; }
+  .tprev img { width: 100%; aspect-ratio: 16/9; border-radius: 10px; border: 1px solid var(--line); display: block; background: #e5e7eb; cursor: zoom-in; }
+  .photos { display: flex; gap: 10px; flex-wrap: wrap; }
+  .photo { width: 96px; cursor: pointer; border: 3px solid transparent; border-radius: 10px; background: #e9ebef; text-align: center; font-size: 12px; color: var(--muted); overflow: hidden; }
+  .photo img { width: 100%; height: 108px; object-fit: contain; display: block; }
   .photo.sel { border-color: var(--accent); }
-  .photo.none { display: flex; align-items: center; justify-content: center; height: 118px; font-size: 12px; }
-  .photo.up { display: flex; align-items: center; justify-content: center; height: 118px; border: 2px dashed #c4c9d1; background: #fff; font-size: 12px; }
-  .vidopts { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin: -2px 0 12px; font-size: 14px; }
-  .vidopts label { display: flex; gap: 6px; align-items: center; }
-  .vidopts input[type=number] { width: 64px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
-  .thumbbox.off .vidopts { display: none; }
-  .sliders { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
-  @media (max-width: 860px) { .thumbbox .body { grid-template-columns: 1fr; } }
+  .photo.none, .photo.up { display: flex; align-items: center; justify-content: center; height: 134px; font-size: 14px; padding: 6px; }
+  .photo.up { border: 2px dashed #aab2bd; background: #fff; }
+  .sliders { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: center; font-size: 14px; color: var(--muted); margin-top: 10px; }
+  .opt { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 12px 14px; background: var(--soft); border-radius: 10px; margin-bottom: 14px; }
+  .opt label { display: flex; gap: 8px; align-items: center; }
+  .opt input[type=number] { width: 80px; min-height: 36px; }
+  .off-note { color: var(--muted); }
 
-  footer.bar { position: fixed; left: 0; right: 0; bottom: 0; background: #ffffffee; backdrop-filter: blur(6px); border-top: 1px solid var(--line); display: none; }
-  footer.bar .in { max-width: 1100px; margin: 0 auto; padding: 12px 24px; display: flex; gap: 12px; align-items: center; }
-  footer.bar .result { color: var(--ok); flex: 1; }
-  footer.bar .result button { margin-left: 8px; }
-  @media (max-width: 860px) { .item { grid-template-columns: 34px 1fr; } .side, .sheet, .add-sheet { grid-column: 1 / -1; } .sheet .body { grid-template-columns: 1fr; } }
+  /* service list */
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .chip { border-radius: 999px; min-height: 36px; padding: 4px 14px; }
+  .chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .row { border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+  .row.open { border-color: var(--accent); box-shadow: 0 0 0 2px #d6e3fa; }
+  .row.issue { border-left: 5px solid var(--warn); }
+  .row.off .head { opacity: .55; }
+  .head { display: grid; grid-template-columns: 36px 30px minmax(0, 1fr) 300px 40px; gap: 12px; align-items: center; padding: 10px 12px; cursor: pointer; }
+  .head .n { font-weight: 700; color: var(--muted); text-align: center; font-size: 17px; }
+  .head .t { min-width: 0; }
+  .head .t b { display: block; font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .head .t small { display: block; color: var(--muted); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 6px; padding: 1px 7px; margin-right: 6px; vertical-align: 2px; background: #e5e7eb; color: #374151; }
+  .tag.song { background: #ede9fe; color: #5b21b6; }
+  .tag.box { background: #e0f2fe; color: #075985; }
+  .tag.warn { background: var(--warn-soft); color: var(--warn); }
+  .head img { width: 300px; height: 46px; object-fit: cover; object-position: 50% 62%; border-radius: 6px; background: #ddd; display: block; }
+  .row.kind-box .head img { object-position: 50% 0; }
+  .head .chev { font-size: 22px; color: var(--faint); text-align: center; transition: transform .15s; }
+  .row.open .chev { transform: rotate(90deg); }
+  .body { display: none; border-top: 1px solid var(--line); padding: 14px 16px 18px; }
+  .row.open .body { display: block; }
+  .edit { display: grid; grid-template-columns: minmax(0, 1fr) 480px; gap: 20px; align-items: start; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .bigprev img { width: 100%; border-radius: 8px; display: block; background: #ddd; cursor: zoom-in; }
+  .acts { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .acts .del { color: var(--err); }
+  .src { font-size: 14px; color: var(--muted); margin-top: 8px; }
+
+  /* song panel */
+  .sheet { margin-top: 16px; background: var(--soft); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .sheet .shead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .sheet .shead label { display: flex; gap: 8px; align-items: center; font-weight: 700; }
+  .status { color: var(--muted); }
+  .status.err { color: var(--err); font-weight: 600; }
+  .why { margin-top: 8px; font-size: 15px; padding: 8px 12px; border-radius: 8px; background: #fff; border: 1px solid var(--line); }
+  .why.warn { background: var(--warn-soft); border-color: #f3d19c; color: #7c3d06; }
+  .sopts { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+  .sopts label { display: flex; gap: 8px; align-items: center; }
+  .sopts input[type=text] { width: 320px; }
+  .sbody { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+  .thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .thumb { position: relative; cursor: pointer; border: 3px solid transparent; border-radius: 8px; background: #fff; }
+  .thumb img { width: 100%; display: block; border-radius: 5px; aspect-ratio: 4/3; object-fit: contain; background: #fff; }
+  .thumb.sel { border-color: var(--accent); }
+  .thumb .badge { position: absolute; top: -10px; left: -10px; background: var(--accent); color: #fff; border-radius: 50%; width: 30px; height: 30px; font-size: 15px; font-weight: 700; display: none; align-items: center; justify-content: center; }
+  .thumb.sel .badge { display: flex; }
+  .thumb .cap { font-size: 13px; color: var(--muted); text-align: center; padding: 3px 0; }
+  .thumb .cap b { color: var(--accent); }
+  .upload { aspect-ratio: 4/3; border: 2px dashed #aab2bd; border-radius: 8px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 14px; color: var(--muted); cursor: pointer; padding: 6px; background: #fff; }
+  .sbig img { width: 100%; border-radius: 8px; border: 1px solid var(--line); display: block; background: #333; aspect-ratio: 16/9; cursor: zoom-in; }
+
+  /* results */
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 14px; }
+  .gallery figure { margin: 0; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .gallery img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; cursor: zoom-in; background: #ddd; }
+  .gallery .vid { width: 100%; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: #1f2937; color: #fff; font-weight: 700; }
+  .gallery figcaption { font-size: 13px; padding: 6px 8px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .done-box { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .tip { margin-top: 12px; font-size: 15px; color: var(--muted); background: var(--soft); border-radius: 10px; padding: 10px 14px; }
+
+  /* bottom bar */
+  footer.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: #ffffffee; backdrop-filter: blur(6px); border-top: 1px solid var(--line); }
+  footer.bar .in { max-width: 1320px; margin: 0 auto; padding: 12px 24px; display: flex; gap: 16px; align-items: center; }
+  footer.bar .what { flex: 1; font-size: 16px; }
+  footer.bar .what b { font-size: 18px; }
+  footer.bar .warnline { color: var(--warn); font-weight: 600; }
+
+  /* overlays */
+  .overlay { position: fixed; inset: 0; z-index: 50; background: rgba(17, 24, 39, .72); display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .overlay img { max-width: 96vw; max-height: 90vh; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+  .progress { background: #fff; border-radius: 16px; padding: 26px 28px; width: min(560px, 92vw); }
+  .progress h3 { margin: 0 0 6px; font-size: 20px; }
+  .pbar { height: 14px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin: 14px 0 8px; }
+  .pbar div { height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 1fr; } nav.side { display: none; }
+    .tgrid, .edit, .sbody { grid-template-columns: 1fr; }
+    .head { grid-template-columns: 30px 28px minmax(0, 1fr) 36px; } .head img { display: none; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>Medari Live Footer</h1>
-  <p>Drop this week's Tata Ibadah PDF, check the list, then generate the footer and music-sheet PNGs for OBS.</p>
-</header>
-<main>
-  <div class="drop" id="drop">
-    <strong>Drop the Tata Ibadah PDF here</strong>
-    <small>or click to choose a file</small>
-    <input type="file" id="file" accept="application/pdf" hidden>
+<header class="top">
+  <div class="in">
+    <h1>Medari Live Kit</h1>
+    <span class="hint" id="subtitle">Footer, slide lagu, thumbnail dan video countdown dari Tata Ibadah</span>
+    <span class="file hidden" id="hdr-file"></span>
+    <button id="change-pdf" class="hidden">Ganti PDF</button>
   </div>
-  <div class="msg" id="msg"></div>
+</header>
 
-  <section class="info" id="info">
-    <div class="grid">
-      <div><label>File</label><b id="i-file"></b></div>
-      <div><label>Date</label><b id="i-date"></b></div>
-      <div><label>Theme</label><b id="i-theme"></b></div>
-      <div><label>Preacher</label><b id="i-preacher"></b></div>
-    </div>
-  </section>
+<!-- start screen -->
+<div class="start" id="start">
+  <div class="drop" id="drop">
+    <strong>Taruh PDF Tata Ibadah di sini</strong>
+    <span>atau klik untuk memilih file</span>
+  </div>
+  <div class="msg hidden" id="start-msg"></div>
+  <div class="steps">
+    <div><b>1. Taruh PDF</b>Semua teks, lagu, foto dan bacaan dibaca otomatis.</div>
+    <div><b>2. Cek "Perlu dicek"</b>Hanya hal yang belum pasti yang perlu dilihat.</div>
+    <div><b>3. Buat semua</b>Hasilnya langsung ada di folder OBS <i>Minggu Ini</i>.</div>
+  </div>
+  <input type="file" id="file" accept="application/pdf" hidden>
+</div>
 
-  <section class="thumbbox" id="thumb">
-    <div class="head"><label><input type="checkbox" id="t-inc" checked> YouTube thumbnail</label>
-      <span class="hint">Saved as a 1280×720 JPG for YouTube and a 1920×1080 PNG for OBS.</span></div>
-    <div class="vidopts">
-      <label><input type="checkbox" id="t-video" checked> Countdown video: thumbnail → <i>Bahan Ads Mentah</i> video → thumbnail, with fades</label>
-      <label>thumbnail <input type="number" id="t-hold" min="2" max="30" step="0.5" value="5"> s</label>
-      <label>fade <input type="number" id="t-fade" min="0.2" max="3" step="0.1" value="1"> s</label>
-    </div>
-    <div class="body">
-      <div class="tfields">
-        <label>Top line</label><input type="text" data-k="date_line">
-        <label>Theme (press Enter to choose where a new line starts)</label><textarea data-k="theme" rows="3"></textarea>
-        <label>Readings</label><input type="text" data-k="readings">
-        <label>Preacher (bottom left)</label><input type="text" data-k="preacher">
-        <label>Time and language (bottom right)</label><input type="text" data-k="time_lang">
-        <label>Photo <span id="t-photo-status"></span></label>
-        <div class="photos" id="t-photos"></div>
-        <div class="sliders">
-          Size <input type="range" min="0.5" max="1.6" step="0.02" value="1" data-s="zoom">
-          Left / right <input type="range" min="-300" max="400" step="5" value="0" data-s="dx">
-          Up / down <input type="range" min="-250" max="400" step="5" value="0" data-s="dy">
+<!-- work screen -->
+<div class="layout hidden" id="work">
+  <nav class="side">
+    <a href="#s-sum">Ringkasan <span class="count" id="nav-issues">0</span></a>
+    <a href="#s-thumb">Thumbnail &amp; Video</a>
+    <a href="#s-list">Urutan Ibadah <span class="count" id="nav-items">0</span></a>
+    <a href="#s-out" id="nav-out" class="hidden">Hasil <span class="count ok">✓</span></a>
+  </nav>
+  <main>
+    <div class="msg hidden" id="msg"></div>
+
+    <section class="card" id="s-sum">
+      <div class="banner hidden" id="restored"></div>
+      <h2>Ringkasan</h2>
+      <div class="facts">
+        <div><span>Tanggal</span><b id="i-date"></b></div>
+        <div><span>Tema</span><b id="i-theme"></b></div>
+        <div><span>Pengkhotbah</span><b id="i-preacher"></b></div>
+      </div>
+      <h3 style="margin:6px 0 10px;font-size:17px">Perlu dicek</h3>
+      <div class="checks" id="checks"></div>
+    </section>
+
+    <section class="card" id="s-thumb">
+      <h2><input type="checkbox" id="t-inc" checked title="Buat thumbnail"> Thumbnail &amp; Video</h2>
+      <div id="t-wrap">
+        <div class="opt">
+          <label><input type="checkbox" id="t-video" checked> <b>Video countdown</b></label>
+          <label>thumbnail <input type="number" id="t-hold" min="2" max="30" step="0.5" value="5"> detik</label>
+          <label>fade <input type="number" id="t-fade" min="0.2" max="3" step="0.1" value="1"> detik</label>
+          <span class="hint" style="flex-basis:100%">thumbnail → video <i>Bahan Ads Mentah</i> → thumbnail, dengan efek fade</span>
+        </div>
+        <div class="tgrid">
+          <div>
+            <label class="field">Baris atas</label><input type="text" data-k="date_line">
+            <label class="field">Tema <span class="hint">(tekan Enter untuk memilih tempat pindah baris)</span></label><textarea data-k="theme" rows="2"></textarea>
+            <label class="field">Bacaan</label><input type="text" data-k="readings">
+            <div class="two">
+              <div><label class="field">Pengkhotbah (kiri bawah)</label><input type="text" data-k="preacher"></div>
+              <div><label class="field">Jam dan bahasa (kanan bawah)</label><input type="text" data-k="time_lang"></div>
+            </div>
+            <label class="field">Foto pengkhotbah <span class="hint" id="t-photo-status"></span></label>
+            <div class="photos" id="t-photos"></div>
+            <div class="sliders">
+              Ukuran <input type="range" min="0.5" max="1.6" step="0.02" value="1" data-s="zoom">
+              Kiri / kanan <input type="range" min="-300" max="400" step="5" value="0" data-s="dx">
+              Atas / bawah <input type="range" min="-250" max="400" step="5" value="0" data-s="dy">
+            </div>
+          </div>
+          <div class="tprev"><img id="t-img" alt="Pratinjau thumbnail" title="Klik untuk memperbesar"></div>
         </div>
       </div>
-      <div class="tprev"><img id="t-img" alt=""></div>
-    </div>
-  </section>
+      <p class="off-note hidden" id="t-off">Thumbnail dan video tidak dibuat minggu ini.</p>
+    </section>
 
-  <div class="toolbar" id="toolbar">
-    <h2 id="count"></h2>
-    <button id="add">+ Add footer</button>
-  </div>
-  <div class="list" id="list"></div>
-</main>
+    <section class="card" id="s-list">
+      <h2>Urutan Ibadah</h2>
+      <div class="toolbar">
+        <button class="chip on" data-filter="all">Semua</button>
+        <button class="chip" data-filter="issue">Perlu dicek</button>
+        <button class="chip" data-filter="song">Lagu</button>
+        <button class="chip" data-filter="off">Tidak dipakai</button>
+        <span style="flex:1"></span>
+        <button id="open-all">Buka semua</button>
+        <button id="close-all">Tutup semua</button>
+      </div>
+      <div class="list" id="list"></div>
+      <div style="margin-top:12px"><button id="add">+ Tambah item</button></div>
+    </section>
 
-<footer class="bar" id="bottom">
+    <section class="card hidden" id="s-out">
+      <h2>Hasil</h2>
+      <div id="out"></div>
+    </section>
+  </main>
+</div>
+
+<footer class="bar hidden" id="bottom">
   <div class="in">
-    <button class="primary" id="gen">Generate</button>
-    <div class="result" id="result"></div>
+    <div class="what"><b id="gen-what"></b><div class="warnline hidden" id="gen-warn"></div></div>
+    <button class="primary big" id="gen">Buat semua</button>
   </div>
 </footer>
 
+<div class="overlay hidden" id="lightbox" title="Klik untuk menutup"><img alt=""></div>
+<div class="overlay hidden" id="progress">
+  <div class="progress">
+    <h3>Sedang membuat…</h3>
+    <div class="hint" id="p-cur">&nbsp;</div>
+    <div class="pbar"><div id="p-bar"></div></div>
+    <div id="p-num"></div>
+  </div>
+</div>
+
 <script>
 const $ = s => document.querySelector(s);
-let svc = null;
-let uid = 0;
+const $$ = s => [...document.querySelectorAll(s)];
+let svc = null, thumb = null, uid = 0, filter = 'all';
+const TYPES = { bar: 'Judul', pill: 'Judul + keterangan', box: 'Kotak teks' };
 
-function showError(text) { const m = $('#msg'); m.textContent = text; m.className = 'msg err'; }
-function clearError() { $('#msg').className = 'msg'; }
 function esc(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
-function debounce(fn, ms) { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; }
+function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+function show(el, on = true) { (typeof el === 'string' ? $(el) : el).classList.toggle('hidden', !on); }
+function showError(text) { const m = $('#msg'); m.textContent = text; show(m); m.scrollIntoView({ block: 'center' }); }
+function clearError() { show('#msg', false); }
 async function postJSON(url, body) {
-  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  return r;
+  return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 }
+async function setImg(img, resp) { const old = img.src; img.src = URL.createObjectURL(await resp.blob()); if (old.startsWith('blob:')) URL.revokeObjectURL(old); }
+function zoom(src) { const lb = $('#lightbox'); lb.querySelector('img').src = src; show(lb); }
+$('#lightbox').onclick = () => show('#lightbox', false);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') show('#lightbox', false); });
 
-// ---------- upload PDF ----------
+// ---------- autosave (per PDF and date, in this browser) ----------
+const storeKey = () => 'medari-live:' + (svc?.filename || '') + '|' + (svc?.date || '');
+const save = debounce(() => {
+  if (!svc) return;
+  try {
+    const footers = svc.footers.map(f => ({ ...f, sheet: f.sheet ? { ...f.sheet, status: ['loading', 'waiting'].includes(f.sheet.status) ? 'waiting' : f.sheet.status } : null }));
+    localStorage.setItem(storeKey(), JSON.stringify({ at: Date.now(), svc: { ...svc, footers }, thumb }));
+  } catch (e) { /* storage full or blocked: the page still works */ }
+}, 600);
+function changed() { save(); refreshSummary(); }
+
+// ---------- open a PDF ----------
 const drop = $('#drop'), file = $('#file');
 drop.onclick = () => file.click();
-file.onchange = () => file.files[0] && upload(file.files[0]);
-['dragenter', 'dragover'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
-['dragleave', 'drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', ev => ev.dataTransfer.files[0] && upload(ev.dataTransfer.files[0]));
+file.onchange = () => { if (file.files[0]) upload(file.files[0]); file.value = ''; };
+['dragenter', 'dragover'].forEach(e => document.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(e => document.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+document.addEventListener('drop', ev => { const f = ev.dataTransfer.files[0]; if (f) askUpload(f); });
+$('#change-pdf').onclick = () => file.click();
+
+function askUpload(f) {
+  if (svc && !confirm('Ganti dengan PDF baru?\n\nEditan minggu ini tetap tersimpan dan kembali lagi jika PDF yang sama dibuka.')) return;
+  upload(f);
+}
 
 async function upload(f) {
-  clearError();
-  drop.querySelector('strong').textContent = 'Reading ' + f.name + ' ...';
+  clearError(); show('#start-msg', false);
+  drop.querySelector('strong').textContent = 'Membaca ' + f.name + ' …';
   const fd = new FormData(); fd.append('pdf', f);
   try {
     const r = await fetch('/api/parse', { method: 'POST', body: fd });
     const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'Could not read the PDF');
-    svc = data;
-    drop.querySelector('strong').textContent = 'Drop another PDF to start again';
-    $('#i-file').textContent = data.filename;
-    $('#i-date').textContent = [data.date, data.time].filter(Boolean).join(', ') || '-';
-    $('#i-theme').textContent = data.theme || '-';
-    $('#i-preacher').textContent = [data.preacher, data.preacher_church && '(' + data.preacher_church + ')'].filter(Boolean).join(' ') || '-';
-    $('#info').style.display = 'block';
-    $('#toolbar').style.display = 'flex';
-    $('#bottom').style.display = 'block';
-    $('#result').textContent = '';
-    for (const f of svc.footers) {
-      f._id = ++uid;
-      if (f.song) f.sheet = newSheet(f, f.include);
-    }
-    renderList();
-    setupThumb();
-    loadSongs();
+    if (!r.ok) throw new Error(data.error || 'PDF tidak bisa dibaca');
+    start(data);
   } catch (e) {
-    drop.querySelector('strong').textContent = 'Drop the Tata Ibadah PDF here';
-    showError(e.message);
+    drop.querySelector('strong').textContent = 'Taruh PDF Tata Ibadah di sini';
+    const m = $('#start-msg'); m.textContent = e.message; show(m);
   }
+}
+
+function start(data, fresh = false) {
+  svc = data;
+  let saved = null;
+  try { saved = !fresh && JSON.parse(localStorage.getItem(storeKey()) || 'null'); } catch (e) {}
+  const rb = $('#restored');
+  if (saved && saved.svc && saved.svc.footers) {
+    svc = saved.svc;
+    thumb = saved.thumb;
+    const when = new Date(saved.at).toLocaleString('id-ID', { weekday: 'long', hour: '2-digit', minute: '2-digit' });
+    rb.innerHTML = `<span>↺ Editan Anda untuk PDF ini dipulihkan (disimpan ${esc(when)}).</span>`;
+    const again = document.createElement('button'); again.textContent = 'Mulai lagi dari PDF';
+    again.onclick = () => { if (confirm('Buang semua editan dan baca ulang dari PDF?')) { localStorage.removeItem(storeKey()); start(data, true); } };
+    rb.appendChild(again); show(rb);
+  } else {
+    thumb = null; show(rb, false);
+  }
+  uid = 0;
+  for (const f of svc.footers) {
+    f._id = ++uid;
+    if (f.song && !f.sheet) f.sheet = newSheet(f, f.include);
+  }
+  show('#start', false); show('#work'); show('#bottom'); show('#s-out', false); show('#nav-out', false);
+  show('#hdr-file'); show('#change-pdf'); show('#subtitle', false);
+  $('#hdr-file').textContent = svc.filename;
+  $('#i-date').textContent = [svc.date, svc.time].filter(Boolean).join(', ') || '–';
+  $('#i-theme').textContent = svc.theme || '–';
+  $('#i-preacher').textContent = [svc.preacher, svc.preacher_church && '(' + svc.preacher_church + ')'].filter(Boolean).join(' ') || '–';
+  renderList();
+  setupThumb();
+  window.scrollTo(0, 0);
+  loadSongs();
 }
 
 function newSheet(f, include) {
   return { include, status: 'waiting', key: '', name: '', slides: [], selected: [], label: f.top || '',
-           qr: /persembahan/i.test(f.top || ''), note: '', error: '' };
+           qr: /persembahan|pisungsung/i.test(f.top || ''), note: '', reason: '', error: '' };
 }
 
-// fetch songs one by one (PowerPoint handles one file at a time)
+// songs one by one (PowerPoint handles one file at a time)
 async function loadSongs() {
-  for (const f of svc.footers) {
-    if (f.sheet && f.sheet.include && f.sheet.status === 'waiting') await loadSong(f);
-  }
+  for (const f of svc.footers) if (f.sheet && f.sheet.include && f.sheet.status === 'waiting') await loadSong(f);
 }
-
 async function loadSong(f) {
   const s = f.sheet;
-  s.status = 'loading'; s.error = ''; updateCard(f);
+  s.status = 'loading'; s.error = ''; updateRow(f, true);
   try {
     const r = await postJSON('/api/song', f.song);
     const data = await r.json();
     if (!r.ok) throw new Error(data.error);
-    Object.assign(s, { status: 'ready', key: data.key, name: data.name, slides: data.slides, selected: data.selected, note: data.note });
+    Object.assign(s, { status: 'ready', key: data.key, name: data.name, slides: data.slides, selected: data.selected,
+                       note: data.note, reason: data.reason || '' });
   } catch (e) {
     s.status = 'error'; s.error = e.message;
-    if (!s.key) s.key = 'UP_' + Date.now() + '_' + f._id;   // allow uploading own images
+    if (!s.key) s.key = 'UP_' + Date.now() + '_' + f._id;   // allow own images
   }
-  updateCard(f);
+  updateRow(f, true); changed();
 }
 
-// ---------- list ----------
-function renderList() {
-  const list = $('#list');
-  list.innerHTML = '';
-  svc.footers.forEach((f, i) => list.appendChild(buildCard(f, i)));
-  updateCounts();
+// ---------- what needs checking ----------
+function issuesOf(f) {
+  const out = [];   // [level, text]
+  const s = f.sheet;
+  const name = f.kind === 'box' ? (f.bottom === 'dialog' ? `Dialog ${f.top}` : `Lagu “${f.bottom}”`) : (f.main || 'Item tanpa teks');
+  if (f.include && !String(f.main || '').trim()) out.push(['warn', f.kind === 'box' ? `${name}: teks / lirik belum diisi` : 'Item tanpa teks']);
+  if (!f.include && f.kind === 'box' && !String(f.main || '').trim() && /lirik|lyrics/i.test(f.source || ''))
+    out.push(['info', `${name}: lirik tidak ada di PDF (tidak dipakai). Isi liriknya jika lagu ini perlu ditampilkan.`]);
+  if (s && s.include) {
+    if (s.status === 'error') out.push(['warn', `${f.main}: ${s.error} Tambahkan gambar sendiri atau matikan slide lagu.`]);
+    else if (s.status === 'ready' && s.note) out.push(['warn', `${f.main}: pilihan slide perlu dicek. ${s.note}`]);
+    else if (s.status === 'ready' && !s.selected.length) out.push(['warn', `${f.main}: belum ada slide yang dipilih`]);
+    else if (s.status === 'loading' || s.status === 'waiting') out.push(['wait', `${f.main}: sedang diambil dari perpustakaan lagu…`]);
+  }
+  return out;
 }
 
-function updateCounts() {
+function refreshSummary() {
+  if (!svc) return;
+  const box = $('#checks'); box.innerHTML = '';
+  let warns = 0, waits = 0;
+  const add = (level, text, go) => {
+    if (level === 'wait') waits++;
+    const el = document.createElement('div');
+    el.className = 'check' + (level === 'warn' ? '' : ' info');
+    el.innerHTML = `<span class="ic">${level === 'warn' ? '⚠' : level === 'wait' ? '⏳' : 'ℹ'}</span><span class="tx">${esc(text)}</span>`;
+    if (go) { const b = document.createElement('button'); b.textContent = 'Lihat'; b.onclick = go; el.appendChild(b); }
+    box.appendChild(el);
+    if (level === 'warn') warns++;
+  };
+  if (thumb && thumb.include && !thumb.photo)
+    add('warn', thumb.searching ? 'Thumbnail: mencari foto pengkhotbah…' : 'Thumbnail: belum ada foto pengkhotbah. Pilih atau tambahkan foto.',
+        () => $('#s-thumb').scrollIntoView());
+  for (const f of svc.footers) for (const [lv, tx] of issuesOf(f)) add(lv, tx, () => openRow(f));
+  if (!warns && !waits) {
+    const ok = document.createElement('div'); ok.className = 'check ok';
+    ok.innerHTML = '<span class="ic">✓</span><span class="tx">Semua siap dibuat. Klik “Buat semua” di bawah.</span>';
+    box.prepend(ok);
+  }
+  const ni = $('#nav-issues'); ni.textContent = warns || '✓'; ni.className = 'count ' + (warns ? 'warn' : 'ok');
+  // bottom bar
   let n = 0, sheets = 0;
   for (const f of svc.footers) {
     if (f.include) n += f.kind === 'box' ? (f._n ?? 1) : 1;
     if (f.sheet && f.sheet.include) sheets += f.sheet.selected.length;
   }
-  $('#count').textContent = `${n} footers` + (sheets ? ` + ${sheets} music-sheet slides` : '');
-  const t = thumb && thumb.include ? 1 : 0;
-  $('#gen').textContent = `Generate ${n + sheets} images` + (t ? ' + thumbnail' : '') + (t && thumb.video ? ' + video' : '');
-  $('#gen').disabled = n + sheets + t === 0;
+  const t = thumb && thumb.include;
+  $('#gen-what').textContent = `${n + sheets} gambar` + (t ? ' + thumbnail' : '') + (t && thumb.video ? ' + video countdown' : '');
+  $('#gen').disabled = n + sheets + (t ? 1 : 0) === 0;
+  const gw = $('#gen-warn'); gw.textContent = warns ? `${warns} hal perlu dicek dulu (lihat Ringkasan)` : ''; show(gw, warns > 0);
+  $('#nav-items').textContent = svc.footers.filter(f => f.include || (f.sheet && f.sheet.include)).length;
+  // numbering + issue marks
   let k = 0;
-  document.querySelectorAll('.item').forEach((el, i) => {
-    const f = svc.footers[i];
-    el.querySelector('.num .n').textContent = (f.include || (f.sheet && f.sheet.include)) ? ++k : '–';
-  });
+  for (const f of svc.footers) {
+    const el = rowEl(f); if (!el) continue;
+    el.querySelector('.n').textContent = (f.include || (f.sheet && f.sheet.include)) ? ++k : '–';
+    const iss = issuesOf(f).some(i => i[0] === 'warn');
+    el.classList.toggle('issue', iss);
+    el.classList.toggle('off', !f.include && !(f.sheet && f.sheet.include));
+  }
+  applyFilter();
 }
 
-function buildCard(f, i) {
+// ---------- service list ----------
+const rowEl = f => document.querySelector(`.row[data-id="${f._id}"]`);
+function renderList() {
+  const list = $('#list'); list.innerHTML = '';
+  for (const f of svc.footers) list.appendChild(buildRow(f));
+  for (const f of svc.footers) footerPreview(f);
+  refreshSummary();
+}
+
+function headText(f) {
+  const tags = [];
+  if (f.song || f.sheet) tags.push('<span class="tag song">Lagu</span>');
+  else if (f.kind === 'box') tags.push(`<span class="tag box">${f.bottom === 'dialog' ? 'Dialog' : 'Lirik'}</span>`);
+  if (issuesOf(f).some(i => i[0] === 'warn')) tags.push('<span class="tag warn">Perlu dicek</span>');
+  let title, sub;
+  if (f.kind === 'box') { title = f.bottom === 'dialog' ? `Dialog – ${f.top}` : (f.bottom || 'Kotak teks'); sub = (f.main || '').split('\n')[0] || 'Belum ada teks'; }
+  else if (f.kind === 'pill') { title = f.main || '(kosong)'; sub = [f.top, f.bottom].filter(Boolean).join(' · '); }
+  else { title = f.main || '(kosong)'; sub = 'Judul'; }
+  const s = f.sheet;
+  if (s && s.include) sub += s.status === 'ready' ? ` · ${s.selected.length} slide lagu` : s.status === 'loading' ? ' · mengambil slide…' : s.status === 'error' ? ' · lagu tidak ditemukan' : '';
+  if (f.kind === 'box' && f._n > 1) sub = `${f._n} gambar · ` + sub;
+  return `<b>${tags.join('')}${esc(title)}</b><small>${esc(sub)}</small>`;
+}
+
+function buildRow(f) {
   const el = document.createElement('div');
-  el.className = `item ${f.kind} ${f.include ? '' : 'off'}`;
+  el.className = 'row';
   el.dataset.id = f._id;
   el.innerHTML = `
-    <div class="num"><span class="n"></span><input type="checkbox" ${f.include ? 'checked' : ''} title="Include this footer"></div>
-    <div class="fields">
-      <div class="row">
-        <select><option value="bar">Bar</option><option value="pill">Pill</option><option value="box">Box</option></select>
-        ${f.kind === 'box'
-          ? `<input type="text" class="boxname" value="${esc([f.top, f.bottom === 'dialog' ? 'dialog' : f.bottom].filter(Boolean).join(' - '))}" disabled>`
-          : `<input type="text" class="main" value="${esc(f.main)}" placeholder="Main text">`}
-      </div>
-      ${f.kind === 'box' ? `<textarea class="main boxtext" rows="${Math.min(14, Math.max(4, (f.main || '').split('\n').length + 1))}"
-        placeholder="Type the lines here. An empty line starts a new box; long text is split into boxes of 3 lines by itself.">${esc(f.main)}</textarea>
-        <div class="hint">Each box is one image. Empty line = new box.</div>` : ''}
-      <div class="small-row">
-        <input type="text" class="top" value="${esc(f.top)}" placeholder="Small text above">
-        <input type="text" class="bottom" value="${esc(f.bottom)}" placeholder="Small text below">
-      </div>
-      ${f.source ? `<div class="hint" title="${esc(f.source)}">From PDF: ${esc(f.source)}</div>` : ''}
+    <div class="head">
+      <span class="n"></span>
+      <input type="checkbox" class="inc" ${f.include ? 'checked' : ''} title="Pakai item ini">
+      <div class="t">${headText(f)}</div>
+      <img class="mini" alt="">
+      <span class="chev">›</span>
     </div>
-    <div class="side">
-      <img alt="">
-      <div class="acts">
-        <button data-a="up" title="Move up">↑</button>
-        <button data-a="down" title="Move down">↓</button>
-        <button data-a="del" title="Remove">✕</button>
-      </div>
-    </div>
-    <div class="sheet-slot" style="display:contents"></div>`;
-  const sel = el.querySelector('select'); sel.value = f.kind;
-  const img = el.querySelector('.side img');
-  const refresh = debounce(() => footerPreview(f, img), 250);
-  el.querySelector('.num input').onchange = e => {
-    f.include = e.target.checked; el.classList.toggle('off', !f.include);
-    updateCounts();
-  };
-  sel.onchange = e => {
-    const was = f.kind; f.kind = e.target.value;
-    if (was === 'box' || f.kind === 'box') { renderList(); return; }   // text box <-> single line
-    el.classList.toggle('bar', f.kind === 'bar'); el.classList.toggle('pill', f.kind === 'pill'); refresh();
-  };
-  for (const k of ['main', 'top', 'bottom']) el.querySelector('.' + k).oninput = e => { f[k] = e.target.value; refresh(); };
-  el.querySelector('.acts').onclick = e => {
-    const a = e.target.dataset.a; if (!a) return;
-    const j = svc.footers.indexOf(f);
-    if (a === 'del') svc.footers.splice(j, 1);
-    if (a === 'up' && j > 0) [svc.footers[j - 1], svc.footers[j]] = [svc.footers[j], svc.footers[j - 1]];
-    if (a === 'down' && j < svc.footers.length - 1) [svc.footers[j + 1], svc.footers[j]] = [svc.footers[j], svc.footers[j + 1]];
-    renderList();
-  };
-  footerPreview(f, img);
-  fillSheet(f, el.querySelector('.sheet-slot'));
+    <div class="body"></div>`;
+  el.querySelector('.head').onclick = e => { if (!e.target.classList.contains('inc')) toggleRow(f); };
+  el.querySelector('.inc').onchange = e => { f.include = e.target.checked; updateRow(f); changed(); };
   return el;
 }
 
-function updateCard(f) {
-  const el = document.querySelector(`.item[data-id="${f._id}"]`);
-  if (el) fillSheet(f, el.querySelector('.sheet-slot'));
-  updateCounts();
+function toggleRow(f, open) {
+  const el = rowEl(f); if (!el) return;
+  const now = open ?? !el.classList.contains('open');
+  el.classList.toggle('open', now);
+  if (now && !el.querySelector('.body').childElementCount) buildBody(f);
+}
+function openRow(f) {
+  if (filter !== 'all') setFilter('all');
+  toggleRow(f, true);
+  rowEl(f).scrollIntoView({ block: 'start' });
 }
 
-async function footerPreview(f, img) {
-  const r = await postJSON('/api/preview', { kind: f.kind, main: f.main, top: f.top, bottom: f.bottom });
-  if (r.ok) {
-    f._n = Number(r.headers.get('X-Images') || 1);
-    const old = img.src; img.src = URL.createObjectURL(await r.blob()); if (old) URL.revokeObjectURL(old);
-    updateCounts();
+function buildBody(f) {
+  const body = rowEl(f).querySelector('.body');
+  body.innerHTML = `
+    <div class="edit">
+      <div>
+        <label class="field">Jenis</label>
+        <select class="kind">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}" ${f.kind === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+        ${f.kind === 'box' ? `
+          <label class="field">Teks <span class="hint">(baris kosong = gambar baru; teks panjang dibagi per 3 baris otomatis)</span></label>
+          <textarea class="main" rows="${Math.min(16, Math.max(5, (f.main || '').split('\n').length + 1))}">${esc(f.main)}</textarea>` : `
+          <label class="field">Teks utama</label><input type="text" class="main" value="${esc(f.main)}">
+          ${f.kind === 'pill' ? `<div class="two">
+            <div><label class="field">Teks kecil di atas</label><input type="text" class="top" value="${esc(f.top)}"></div>
+            <div><label class="field">Teks kecil di bawah</label><input type="text" class="bottom" value="${esc(f.bottom)}"></div></div>` : ''}`}
+        ${f.source ? `<div class="src">Dari PDF: ${esc(f.source)}</div>` : ''}
+        <div class="acts">
+          <button data-a="up">↑ Naik</button><button data-a="down">↓ Turun</button>
+          <button data-a="del" class="del">Hapus</button>
+        </div>
+      </div>
+      <div class="bigprev"><img class="big" alt="Pratinjau" title="Klik untuk melihat seukuran layar"></div>
+    </div>
+    <div class="sheet-slot"></div>`;
+  body.querySelector('.kind').onchange = e => { f.kind = e.target.value; body.innerHTML = ''; buildBody(f); updateRow(f); changed(); };
+  for (const k of ['main', 'top', 'bottom']) {
+    const inp = body.querySelector('.' + k);
+    if (inp) inp.oninput = () => { f[k] = inp.value; refreshPreview(f); changed(); updateHead(f); };
+  }
+  body.querySelector('.big').onclick = () => fullPreview(f);
+  body.querySelector('.acts').onclick = e => {
+    const a = e.target.dataset.a; if (!a) return;
+    const j = svc.footers.indexOf(f);
+    if (a === 'del' && !confirm('Hapus item ini dari daftar?')) return;
+    if (a === 'del') svc.footers.splice(j, 1);
+    if (a === 'up' && j > 0) [svc.footers[j - 1], svc.footers[j]] = [svc.footers[j], svc.footers[j - 1]];
+    if (a === 'down' && j < svc.footers.length - 1) [svc.footers[j + 1], svc.footers[j]] = [svc.footers[j], svc.footers[j + 1]];
+    const wasOpen = a !== 'del';
+    renderList(); changed();
+    if (wasOpen) toggleRow(f, true);
+  };
+  footerPreview(f);
+  fillSheet(f);
+}
+
+function updateHead(f) {
+  const el = rowEl(f); if (!el) return;
+  el.querySelector('.t').innerHTML = headText(f);
+  el.classList.toggle('kind-box', f.kind === 'box');
+}
+function updateRow(f, sheetToo) {
+  updateHead(f); refreshSummary();
+  if (sheetToo) fillSheet(f);
+}
+
+const previewTimers = {};
+function refreshPreview(f) { clearTimeout(previewTimers[f._id]); previewTimers[f._id] = setTimeout(() => footerPreview(f), 250); }
+async function footerPreview(f) {
+  const el = rowEl(f); if (!el) return;
+  const r = await postJSON('/api/preview', { kind: f.kind, main: f.main, top: f.top, bottom: f.bottom, width: 640 });
+  if (!r.ok) return;
+  f._n = Number(r.headers.get('X-Images') || 1);
+  const blob = URL.createObjectURL(await r.blob());
+  for (const img of el.querySelectorAll('img.mini, img.big')) { if (img.src.startsWith('blob:')) URL.revokeObjectURL(img.src); img.src = blob; }
+  updateHead(f); refreshSummary();
+}
+async function fullPreview(f) {
+  const r = await postJSON('/api/preview', { kind: f.kind, main: f.main, top: f.top, bottom: f.bottom, width: 1600, full: true });
+  if (r.ok) zoom(URL.createObjectURL(await r.blob()));
+}
+
+function setFilter(v) {
+  filter = v;
+  $$('.chip').forEach(c => c.classList.toggle('on', c.dataset.filter === v));
+  applyFilter();
+}
+function applyFilter() {
+  for (const f of svc.footers) {
+    const el = rowEl(f); if (!el) continue;
+    const vis = filter === 'all' || (filter === 'issue' && el.classList.contains('issue'))
+      || (filter === 'song' && !!(f.sheet || f.song || (f.kind === 'box' && f.bottom !== 'dialog')))
+      || (filter === 'off' && el.classList.contains('off'));
+    el.classList.toggle('hidden', !vis);
   }
 }
+$$('.chip').forEach(c => c.onclick = () => setFilter(c.dataset.filter));
+$('#open-all').onclick = () => svc.footers.forEach(f => toggleRow(f, true));
+$('#close-all').onclick = () => svc.footers.forEach(f => toggleRow(f, false));
+$('#add').onclick = () => {
+  const f = { _id: ++uid, kind: 'bar', main: '', top: '', bottom: '', include: true, source: '' };
+  svc.footers.push(f); renderList(); openRow(f); changed();
+};
 
-// ---------- music sheet panel ----------
-function fillSheet(f, slot) {
+// ---------- song panel ----------
+function fillSheet(f) {
+  const el = rowEl(f); if (!el) return;
+  const slot = el.querySelector('.sheet-slot'); if (!slot) return;   // row not opened yet
   slot.innerHTML = '';
   if (!f.sheet) {
     if (f.kind !== 'pill') return;
-    const add = document.createElement('div');
-    add.className = 'add-sheet';
-    add.innerHTML = `<button class="link">+ Music sheet for this item</button>`;
-    add.querySelector('button').onclick = () => {
+    const add = document.createElement('button'); add.className = 'link'; add.textContent = '+ Slide lagu untuk item ini';
+    add.style.marginTop = '12px';
+    add.onclick = () => {
       const m = (f.main || '').match(/^\s*([A-Za-z]{1,6})\s*(\d{1,4}[a-z]?)\s*(?::\s*(.+))?$/);
       f.song = m ? { code: m[1].toUpperCase(), num: m[2], verses: m[3] || '' } : null;
       f.sheet = newSheet(f, true);
-      if (f.song) loadSong(f); else { f.sheet.status = 'error'; f.sheet.error = 'Not a song number - add your own images below.'; f.sheet.key = 'UP_' + Date.now() + '_' + f._id; updateCard(f); }
+      if (f.song) loadSong(f);
+      else { Object.assign(f.sheet, { status: 'error', error: 'Bukan nomor lagu.', key: 'UP_' + Date.now() + '_' + f._id }); updateRow(f, true); changed(); }
     };
     slot.appendChild(add);
     return;
   }
   const s = f.sheet;
+  const status = s.status === 'loading' ? `Mengambil ${esc(f.song?.code)} ${esc(f.song?.num)} dari perpustakaan lagu…`
+    : s.status === 'ready' ? `${esc(s.name)}: klik slide untuk memilih atau membatalkan (${s.selected.length} dipilih)`
+    : s.status === 'error' ? esc(s.error) + ' Anda bisa menambahkan gambar sendiri.' : 'Menunggu…';
   const box = document.createElement('div');
-  box.className = 'sheet' + (s.include ? '' : ' off');
-  const status = s.status === 'loading' ? `Getting ${esc(f.song?.code)} ${esc(f.song?.num)} from the song library ...`
-    : s.status === 'ready' ? `${esc(s.name)} — click slides to choose (${s.selected.length} chosen)`
-    : s.status === 'error' ? esc(s.error) + ' You can add your own images.'
-    : 'Waiting ...';
+  box.className = 'sheet';
   box.innerHTML = `
-    <div class="head">
-      <label><input type="checkbox" ${s.include ? 'checked' : ''}> Music sheet slides</label>
-      <span class="status ${s.status === 'error' ? 'err' : ''}">${s.include ? status : ''}</span>
+    <div class="shead">
+      <label><input type="checkbox" class="sinc" ${s.include ? 'checked' : ''}> Slide lagu</label>
+      <span class="status ${s.status === 'error' ? 'err' : ''}">${s.include ? status : 'tidak dibuat'}</span>
     </div>
-    ${s.note && s.include ? `<div class="note">${esc(s.note)}</div>` : ''}
-    <div class="opts">
-      <label>Label <input type="text" class="label" value="${esc(s.label)}" placeholder="Pujian Pembuka"></label>
-      <label><input type="checkbox" class="qr" ${s.qr ? 'checked' : ''}> Show offering QR</label>
-    </div>
-    <div class="body">
-      <div class="thumbs"></div>
-      <div class="big"><img alt=""></div>
+    ${s.include && s.reason ? `<div class="why ${s.note ? 'warn' : ''}"><b>Kenapa slide ini?</b> ${esc(s.reason)}</div>` : ''}
+    <div class="${s.include ? '' : 'hidden'}">
+      <div class="sopts">
+        <label>Label <input type="text" class="label" value="${esc(s.label)}"></label>
+        <label><input type="checkbox" class="qr" ${s.qr ? 'checked' : ''}> Tampilkan QR persembahan</label>
+      </div>
+      <div class="sbody"><div class="thumbs"></div><div class="sbig"><img alt="" title="Klik untuk memperbesar"></div></div>
     </div>`;
-  box.querySelector('.head input').onchange = e => {
+  box.querySelector('.sinc').onchange = e => {
     s.include = e.target.checked;
-    if (s.include && s.status === 'waiting') loadSong(f); else updateCard(f);
+    if (s.include && s.status === 'waiting') loadSong(f); else { updateRow(f, true); changed(); }
   };
-  const big = box.querySelector('.big img');
+  const big = box.querySelector('.sbig img');
   const refreshBig = debounce(() => sheetPreview(f, big), 300);
-  box.querySelector('.label').oninput = e => { s.label = e.target.value; refreshBig(); };
-  const qr = box.querySelector('.qr');
-  if (qr) qr.onchange = e => { s.qr = e.target.checked; refreshBig(); };
+  box.querySelector('.label').oninput = e => { s.label = e.target.value; refreshBig(); changed(); };
+  box.querySelector('.qr').onchange = e => { s.qr = e.target.checked; refreshBig(); changed(); };
+  big.onclick = () => big.src && zoom(big.src);
   const thumbs = box.querySelector('.thumbs');
   for (const sl of s.slides) {
     const t = document.createElement('div');
     const pos = s.selected.indexOf(sl.index);
     t.className = 'thumb' + (pos >= 0 ? ' sel' : '');
-    t.title = 'Click to use / not use this slide';
-    t.innerHTML = `<span class="badge">${pos + 1}</span><img loading="lazy" src="/api/slide/${encodeURIComponent(s.key)}/${sl.index}?w=480"><div class="cap">${sl.kind === 'lyrics' ? 'lyrics' : 'slide ' + sl.index}</div>`;
+    t.title = 'Klik untuk memakai / tidak memakai slide ini';
+    const cap = sl.kind === 'lyrics' ? 'lirik' : sl.kind === 'upload' ? 'gambar sendiri' : `slide ${sl.index}` + (sl.verse ? ` · <b>ayat ${sl.verse}</b>` : '');
+    t.innerHTML = `<span class="badge">${pos + 1}</span><img loading="lazy" src="/api/slide/${encodeURIComponent(s.key)}/${sl.index}?w=480"><div class="cap">${cap}</div>`;
     t.onclick = () => {
       const p = s.selected.indexOf(sl.index);
       if (p >= 0) s.selected.splice(p, 1); else { s.selected.push(sl.index); s.selected.sort((a, b) => a - b); }
-      updateCard(f);
+      s.note = '';     // the volunteer has checked the choice
+      updateRow(f, true); changed();
     };
     thumbs.appendChild(t);
   }
-  if (s.include && (s.status === 'ready' || s.status === 'error')) {
+  if (s.include && s.key.startsWith('UP_') && (s.status === 'ready' || s.status === 'error')) {
     const up = document.createElement('label');
     up.className = 'upload';
-    up.innerHTML = `+ Add own image<input type="file" accept="image/*" hidden>`;
+    up.innerHTML = `+ Tambah gambar sendiri<input type="file" accept="image/*" hidden>`;
     up.querySelector('input').onchange = async e => {
       const file = e.target.files[0]; if (!file) return;
-      const key = s.key.startsWith('UP_') ? s.key : null;
-      if (!key) { showError('Own images can be added to songs that were not found in the library.'); return; }
-      const fd = new FormData(); fd.append('key', key); fd.append('image', file);
+      const fd = new FormData(); fd.append('key', s.key); fd.append('image', file);
       const r = await fetch('/api/song-upload', { method: 'POST', body: fd });
       const data = await r.json();
       if (!r.ok) { showError(data.error); return; }
       s.slides.push({ index: data.index, kind: 'upload' }); s.selected.push(data.index);
-      updateCard(f);
+      s.status = 'ready'; s.error = ''; s.name = s.name || 'Gambar sendiri';
+      updateRow(f, true); changed();
     };
-    if (s.key.startsWith('UP_')) thumbs.appendChild(up);
+    thumbs.appendChild(up);
   }
   slot.appendChild(box);
-  if (s.include && s.selected.length) sheetPreview(f, big); else big.parentElement.style.display = 'none';
+  if (s.include && s.selected.length) sheetPreview(f, big); else big.parentElement.classList.add('hidden');
 }
-
 async function sheetPreview(f, img) {
-  const s = f.sheet;
-  if (!s.selected.length) return;
+  const s = f.sheet; if (!s.selected.length) return;
   const r = await postJSON('/api/sheet-preview', { key: s.key, index: s.selected[0], label: s.label, qr: s.qr });
-  if (r.ok) { const old = img.src; img.src = URL.createObjectURL(await r.blob()); if (old) URL.revokeObjectURL(old); }
+  if (r.ok) setImg(img, r);
 }
 
 // ---------- thumbnail ----------
-let thumb = null;
 const thumbPreview = debounce(async () => {
   if (!thumb || !thumb.include) return;
   const r = await postJSON('/api/thumb-preview', thumb);
-  if (r.ok) { const img = $('#t-img'), old = img.src; img.src = URL.createObjectURL(await r.blob()); if (old) URL.revokeObjectURL(old); }
-  else showError(await r.text());
+  if (r.ok) setImg($('#t-img'), r); else showError(await r.text());
 }, 300);
+$('#t-img').onclick = () => $('#t-img').src && zoom($('#t-img').src);
 
 function setupThumb() {
-  thumb = { include: true, ...svc.thumb, photo: '', zoom: 1, dx: 0, dy: 0,
-            video: $('#t-video').checked, hold: Number($('#t-hold').value), fade: Number($('#t-fade').value) };
-  $('#t-video').onchange = e => { thumb.video = e.target.checked; updateCounts(); };
-  $('#t-hold').oninput = e => { thumb.hold = Number(e.target.value) || 5; };
-  $('#t-fade').oninput = e => { thumb.fade = Number(e.target.value) || 1; };
-  $('#thumb').style.display = 'block';
-  $('#thumb').classList.remove('off');
-  $('#t-inc').checked = true;
-  $('#t-inc').onchange = e => { thumb.include = e.target.checked; $('#thumb').classList.toggle('off', !thumb.include); updateCounts(); thumbPreview(); };
-  document.querySelectorAll('#thumb [data-k]').forEach(inp => {
+  const restored = !!thumb;
+  if (!thumb) thumb = { include: true, ...svc.thumb, photo: '', zoom: 1, dx: 0, dy: 0, video: true, hold: 5, fade: 1 };
+  $('#t-inc').checked = thumb.include; $('#t-video').checked = thumb.video;
+  $('#t-hold').value = thumb.hold; $('#t-fade').value = thumb.fade;
+  const sync = () => { show('#t-wrap', thumb.include); show('#t-off', !thumb.include); };
+  sync();
+  $('#t-inc').onchange = e => { thumb.include = e.target.checked; sync(); thumbPreview(); changed(); };
+  $('#t-video').onchange = e => { thumb.video = e.target.checked; changed(); };
+  $('#t-hold').oninput = e => { thumb.hold = Number(e.target.value) || 5; changed(); };
+  $('#t-fade').oninput = e => { thumb.fade = Number(e.target.value) || 1; changed(); };
+  $$('#s-thumb [data-k]').forEach(inp => {
     inp.value = thumb[inp.dataset.k] || '';
-    inp.oninput = () => { thumb[inp.dataset.k] = inp.value; thumbPreview(); };
+    inp.oninput = () => { thumb[inp.dataset.k] = inp.value; thumbPreview(); changed(); };
   });
-  // a changed preacher name searches the photo folder again
   const research = debounce(() => {
-    if (!thumb.photo.startsWith('UPPHOTO_')) thumb.photo = '';
+    if (!String(thumb.photo).startsWith('UPPHOTO_')) thumb.photo = '';
     findPhotos(thumb.preacher.replace(/\(.*$/, '').trim());
   }, 800);
-  $('#thumb [data-k="preacher"]').addEventListener('input', research);
-  document.querySelectorAll('#thumb [data-s]').forEach(inp => {
+  $('#s-thumb [data-k="preacher"]').addEventListener('input', research);
+  $$('#s-thumb [data-s]').forEach(inp => {
     inp.value = thumb[inp.dataset.s];
-    inp.oninput = () => { thumb[inp.dataset.s] = Number(inp.value); thumbPreview(); };
+    inp.oninput = () => { thumb[inp.dataset.s] = Number(inp.value); thumbPreview(); changed(); };
   });
-  updateCounts();
   thumbPreview();
-  findPhotos(svc.preacher || '');
+  if (restored && thumb.candidates) { renderPhotos(); photoStatus(); refreshSummary(); }
+  else findPhotos(svc.preacher || '');
 }
 
+function photoStatus() {
+  const list = thumb.candidates || [], name = thumb._searched || svc.preacher || 'pengkhotbah';
+  $('#t-photo-status').textContent = list.length ? `· ${list.length} foto ditemukan untuk ${name}, klik untuk memilih`
+    : `· tidak ada foto ${name} di folder foto. Tambahkan dengan “+ Foto sendiri” (PNG tanpa latar paling bagus).`;
+}
 async function findPhotos(name) {
-  $('#t-photo-status').textContent = '- searching the photo folder ...';
+  thumb.searching = true; refreshSummary();
+  $('#t-photo-status').textContent = '· mencari di folder foto…';
   let list = [];
   try { const r = await fetch('/api/photos?name=' + encodeURIComponent(name)); list = (await r.json()).photos || []; } catch (e) {}
-  $('#t-photo-status').textContent = list.length ? `- ${list.length} found for ${name}, click to choose`
-    : `- no photo of ${name || 'the preacher'} in the photo folder. Add one with "+ Own photo" (a cut-out PNG looks best).`;
-  thumb.candidates = list;
+  thumb.searching = false; thumb.candidates = list; thumb._searched = name;
   if (list.length && !thumb.photo) thumb.photo = list[0].id;
-  renderPhotos();
-  thumbPreview();
+  photoStatus(); renderPhotos(); thumbPreview(); changed();
 }
-
 function renderPhotos() {
-  const box = $('#t-photos');
-  box.innerHTML = '';
-  const add = (el, key) => { el.classList.toggle('sel', thumb.photo === key); el.onclick = () => { thumb.photo = key; renderPhotos(); thumbPreview(); }; box.appendChild(el); };
+  const box = $('#t-photos'); box.innerHTML = '';
+  const add = (el, key) => { el.classList.toggle('sel', thumb.photo === key); el.onclick = () => { thumb.photo = key; renderPhotos(); thumbPreview(); changed(); }; box.appendChild(el); };
   for (const p of thumb.candidates || []) {
     const el = document.createElement('div'); el.className = 'photo'; el.title = p.name;
-    el.innerHTML = `<img loading="lazy" src="https://drive.google.com/thumbnail?id=${encodeURIComponent(p.id)}&sz=w200"><div>${esc(p.name.replace(/\.\w+$/, ''))}</div>`;
+    el.innerHTML = `<img loading="lazy" src="https://drive.google.com/thumbnail?id=${encodeURIComponent(p.id)}&sz=w200" alt=""><div>${esc(p.name.replace(/\.\w+$/, ''))}</div>`;
     add(el, p.id);
   }
-  if (thumb.photo.startsWith('UPPHOTO_')) {
-    const el = document.createElement('div'); el.className = 'photo none'; el.textContent = 'Own photo'; add(el, thumb.photo);
-  }
-  const none = document.createElement('div'); none.className = 'photo none'; none.textContent = 'No photo'; add(none, '');
-  const up = document.createElement('label'); up.className = 'photo up'; up.innerHTML = '+ Own photo<input type="file" accept="image/*" hidden>';
+  if (String(thumb.photo).startsWith('UPPHOTO_')) { const el = document.createElement('div'); el.className = 'photo none'; el.textContent = 'Foto sendiri'; add(el, thumb.photo); }
+  const none = document.createElement('div'); none.className = 'photo none'; none.textContent = 'Tanpa foto'; add(none, '');
+  const up = document.createElement('label'); up.className = 'photo up'; up.innerHTML = '+ Foto sendiri<input type="file" accept="image/*" hidden>';
   up.querySelector('input').onchange = async e => {
     const file = e.target.files[0]; if (!file) return;
     const fd = new FormData(); fd.append('image', file);
     const r = await fetch('/api/photo-upload', { method: 'POST', body: fd });
     const data = await r.json();
     if (!r.ok) { showError(data.error); return; }
-    thumb.photo = data.key; renderPhotos(); thumbPreview();
+    thumb.photo = data.key; renderPhotos(); thumbPreview(); changed();
   };
   box.appendChild(up);
 }
 
-$('#add').onclick = () => {
-  svc.footers.push({ _id: ++uid, kind: 'bar', main: '', top: '', bottom: '', include: true, source: '' });
-  renderList(); window.scrollTo(0, document.body.scrollHeight);
-};
-
 // ---------- generate ----------
 $('#gen').onclick = async () => {
-  const loading = svc.footers.some(f => f.sheet && f.sheet.include && f.sheet.status === 'loading');
-  if (loading && !confirm('Some songs are still loading. Generate anyway (those songs are skipped)?')) return;
-  const btn = $('#gen'); btn.disabled = true; const label = btn.textContent; btn.textContent = 'Generating ...';
-  $('#result').textContent = ''; clearError();
+  const loading = svc.footers.some(f => f.sheet && f.sheet.include && ['loading', 'waiting'].includes(f.sheet.status));
+  if (loading && !confirm('Beberapa lagu masih diambil. Buat sekarang? (lagu itu dilewati)')) return;
+  const warns = +$('#nav-issues').textContent || 0;
+  if (warns && !confirm(`Masih ada ${warns} hal yang perlu dicek. Tetap buat sekarang?`)) return;
+  clearError();
   const payload = { ...svc, thumb, footers: svc.footers.map(f => ({ ...f,
     sheet: f.sheet && f.sheet.include && f.sheet.key ? { include: true, key: f.sheet.key, slides: f.sheet.selected, label: f.sheet.label, qr: f.sheet.qr } : null })) };
-  try {
-    const r = await postJSON('/api/generate', payload);
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error);
-    const res = $('#result');
-    res.textContent = `Done: ${data.files.length} files saved in ${data.folder}`;
-    const open = document.createElement('button'); open.textContent = 'Open folder';
-    open.onclick = () => postJSON('/api/open-folder', { folder: data.folder });
-    const zip = document.createElement('button'); zip.textContent = 'Download ZIP';
-    zip.onclick = () => { location.href = '/api/download/' + encodeURIComponent(data.zip); };
-    res.append(open, zip);
-  } catch (e) { showError(e.message || 'Generation failed'); }
-  btn.disabled = false; btn.textContent = label;
+  const r = await postJSON('/api/generate', payload);
+  const data = await r.json();
+  if (!r.ok) { showError(data.error || 'Gagal membuat'); return; }
+  show('#progress');
+  $('#p-bar').style.width = '0'; $('#p-num').textContent = `0 dari ${data.total}`; $('#p-cur').innerHTML = '&nbsp;';
+  let job;
+  for (;;) {
+    await new Promise(res => setTimeout(res, 400));
+    try { job = await (await fetch('/api/job/' + data.job)).json(); } catch (e) { continue; }
+    $('#p-bar').style.width = Math.round(100 * job.step / Math.max(1, job.total)) + '%';
+    $('#p-num').textContent = `${job.step} dari ${job.total}`;
+    $('#p-cur').textContent = job.current || ' ';
+    if (job.done) break;
+  }
+  show('#progress', false);
+  if (job.error) { showError('Gagal membuat: ' + job.error); return; }
+  showResult(job);
 };
+
+function showResult(job) {
+  const out = $('#out');
+  const imgs = job.files.filter(n => /\.(png|jpg)$/i.test(n));
+  out.innerHTML = `
+    <div class="check ok" style="margin-bottom:12px"><span class="ic">✓</span><span class="tx">${job.files.length} file selesai dibuat.</span></div>
+    <div class="done-box">
+      <button class="primary" data-open="live">Buka folder OBS (Minggu Ini)</button>
+      <button data-open="date">Buka folder ${esc(job.rel)}</button>
+      <button data-zip>Unduh ZIP</button>
+    </div>
+    <div class="tip"><b>Untuk OBS:</b> arahkan sumber OBS ke folder <code>output\\Minggu Ini</code> cukup sekali. Isinya diganti otomatis setiap minggu.
+      Thumbnail dan video selalu bernama sama (<code>00 - Thumbnail 1920.png</code>, <code>00 - Countdown Loop.mp4</code>), jadi sumbernya tidak perlu diubah lagi.
+      ${job.archived ? `<br>Hasil sebelumnya untuk tanggal ini tidak dihapus, tetapi dipindah ke <code>${esc(job.archived)}</code>.` : ''}</div>
+    <div class="gallery"></div>`;
+  out.querySelector('[data-open="live"]').onclick = () => postJSON('/api/open-folder', { folder: job.live });
+  out.querySelector('[data-open="date"]').onclick = () => postJSON('/api/open-folder', { folder: job.folder });
+  out.querySelector('[data-zip]').onclick = () => { location.href = '/api/download/' + encodeURIComponent(job.zip); };
+  const g = out.querySelector('.gallery');
+  for (const n of job.files) {
+    const fig = document.createElement('figure');
+    if (/\.mp4$/i.test(n)) fig.innerHTML = `<div class="vid">▶ Video countdown</div><figcaption>${esc(n)}</figcaption>`;
+    else {
+      const src = `/api/output/${encodeURIComponent(job.rel)}/${encodeURIComponent(n)}`;
+      fig.innerHTML = `<img loading="lazy" src="${src}?w=440" alt=""><figcaption title="${esc(n)}">${esc(n)}</figcaption>`;
+      fig.querySelector('img').onclick = () => zoom(src + '?w=1600');
+    }
+    g.appendChild(fig);
+  }
+  show('#s-out'); show('#nav-out');
+  $('#s-out').scrollIntoView();
+}
 </script>
 </body>
 </html>

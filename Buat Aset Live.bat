@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Medari Live Footer
+title Medari Live Kit
 cd /d "%~dp0"
 
 rem  Python version installed automatically when none is found (per-user, no admin needed)
@@ -24,25 +24,25 @@ rem ---------------------------------------------------------------------------
 rem 2. None found: download and install Python for this Windows user
 rem ---------------------------------------------------------------------------
 echo.
-echo  Python is not installed yet. Installing Python %PY_VER% now.
-echo  This happens only once and takes 2-5 minutes. Please wait ...
+echo  Python belum terpasang. Sekarang memasang Python %PY_VER%.
+echo  Ini hanya sekali dan butuh 2-5 menit. Mohon tunggu ...
 echo.
 set "PY_SETUP=%TEMP%\python-%PY_VER%-setup.exe"
 curl.exe -L --fail -s -o "%PY_SETUP%" "%PY_URL%"
 if errorlevel 1 powershell -NoProfile -Command "Invoke-WebRequest -UseBasicParsing '%PY_URL%' -OutFile '%PY_SETUP%'"
 if not exist "%PY_SETUP%" (
-  echo  Could not download Python. Check the internet connection and try again.
+  echo  Python tidak bisa diunduh. Periksa koneksi internet lalu coba lagi.
   goto :fail
 )
 "%PY_SETUP%" /quiet InstallAllUsers=0 PrependPath=1 Include_test=0 Include_doc=0 Shortcuts=0
 del "%PY_SETUP%" >nul 2>nul
 call :try "%PY_LOCAL%"
 if not defined PY (
-  echo  Python installation did not finish. Please run this file again,
-  echo  or install Python from https://www.python.org/downloads/
+  echo  Pemasangan Python belum selesai. Jalankan file ini sekali lagi,
+  echo  atau pasang Python dari https://www.python.org/downloads/
   goto :fail
 )
-echo  Python installed.
+echo  Python sudah terpasang.
 
 :have_python
 rem ---------------------------------------------------------------------------
@@ -52,13 +52,13 @@ if exist ".venv\Scripts\python.exe" (
   ".venv\Scripts\python.exe" -c "%OKTEST%" >nul 2>nul || rmdir /s /q ".venv"
 )
 if not exist ".venv\Scripts\python.exe" (
-  echo  First start: preparing the app, this takes a minute ...
+  echo  Pertama kali dibuka: menyiapkan aplikasi, butuh sekitar satu menit ...
   %PY% -m venv .venv
   if errorlevel 1 goto :fail
 )
 ".venv\Scripts\python.exe" -c "import flask, PIL, pymupdf, numpy, imageio_ffmpeg" >nul 2>nul
 if errorlevel 1 (
-  echo  Installing required packages ...
+  echo  Memasang paket yang dibutuhkan ...
   ".venv\Scripts\python.exe" -m pip install --disable-pip-version-check -q -r app\requirements.txt
   if errorlevel 1 goto :fail
 )
@@ -81,8 +81,8 @@ exit /b 0
 
 :fail
 echo.
-echo  Something went wrong while preparing the app.
-echo  Check the internet connection and double-click this file again.
+echo  Ada masalah saat menyiapkan aplikasi.
+echo  Periksa koneksi internet lalu klik dua kali file ini lagi.
 echo.
 pause
 exit /b 1

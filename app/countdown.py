@@ -39,13 +39,13 @@ def base_video(refresh=False):
         have = sorted(ADS_CACHE.glob("*.mp4"), key=lambda p: p.stat().st_mtime, reverse=True)
         if have:
             return have[0], have[0].name
-        raise VideoError("The base video could not be found in the Drive folder 'Bahan Ads Mentah'.")
+        raise VideoError("Video dasar tidak ditemukan di folder Drive 'Bahan Ads Mentah'.")
     name, fid = vids[0]
     path = ADS_CACHE / f"{fid}{Path(name).suffix.lower()}"
     if not path.exists():
         data = _get(f"https://drive.usercontent.google.com/download?id={fid}&export=download&confirm=t", timeout=600)
         if data[4:8] != b"ftyp" and not data.startswith(b"\x1a\x45\xdf\xa3"):
-            raise VideoError(f"Download of {name} failed (Drive returned a web page).")
+            raise VideoError(f"Gagal mengunduh {name} (Drive mengirim halaman web, bukan video).")
         path.write_bytes(data)
     return path, name
 
@@ -58,7 +58,7 @@ def _duration(path):
         if "Duration:" in line:
             h, m, s = line.split("Duration:")[1].split(",")[0].strip().split(":")
             return int(h) * 3600 + int(m) * 60 + float(s)
-    raise VideoError("Could not read the length of the base video.")
+    raise VideoError("Durasi video dasar tidak bisa dibaca.")
 
 
 def make(thumb_img, out_path, hold=5.0, fade=1.0):
@@ -83,5 +83,5 @@ def make(thumb_img, out_path, hold=5.0, fade=1.0):
         r = subprocess.run(cmd, capture_output=True, text=True, errors="replace",
                            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         if r.returncode != 0:
-            raise VideoError("Video could not be made: " + (r.stderr.strip().splitlines() or ["ffmpeg error"])[-1])
+            raise VideoError("Video gagal dibuat: " + (r.stderr.strip().splitlines() or ["ffmpeg error"])[-1])
     return out_path
