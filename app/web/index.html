@@ -189,7 +189,7 @@
   <div class="steps">
     <div><b>1. Taruh PDF</b>Semua teks, lagu, foto dan bacaan dibaca otomatis.</div>
     <div><b>2. Cek "Perlu dicek"</b>Hanya hal yang belum pasti yang perlu dilihat.</div>
-    <div><b>3. Buat semua</b>Hasilnya langsung ada di folder OBS <i>Minggu Ini</i>.</div>
+    <div><b>3. Buat semua</b>Semua file tersimpan di satu folder per tanggal, siap untuk OBS.</div>
   </div>
   <input type="file" id="file" accept="application/pdf" hidden>
 </div>
@@ -809,21 +809,11 @@ function showResult(job) {
   out.innerHTML = `
     <div class="check ok" style="margin-bottom:12px"><span class="ic">✓</span><span class="tx">${job.files.length} file selesai dibuat.</span></div>
     <div class="done-box">
-      <button class="primary" data-open="live">Buka folder OBS (Minggu Ini)</button>
-      <button data-open="date">Buka folder ${esc(job.rel)}</button>
+      <button class="primary" data-open="date">Buka folder ${esc(job.rel)}</button>
       <button data-zip>Unduh ZIP</button>
     </div>
-    ${(job.locked || []).length ? `<div class="check" style="margin-top:12px"><span class="ic">⚠</span><span class="tx">
-      File ini sedang dipakai OBS, jadi belum diganti di <code>Minggu Ini</code>: ${job.locked.map(esc).join(', ')}.
-      Sembunyikan / jeda sumber itu di OBS (atau tutup OBS), lalu klik “Buat semua” lagi.</span></div>` : ''}
-    <div class="tip"><b>Untuk OBS</b> (cukup diatur sekali, isinya diganti otomatis setiap minggu):<br>
-      <code>Minggu Ini\\Footer</code> = footer dan kotak teks, urut sesuai ibadah ·
-      <code>Minggu Ini\\Lagu</code> = slide lagu ·
-      <code>Minggu Ini\\Lagu Persembahan</code> = slide lagu dengan QR ·
-      <code>Minggu Ini\\00 - Countdown Loop.mp4</code> dan <code>00 - Thumbnail 1920.png</code>.
-      ${job.archived ? `<br>Hasil sebelumnya untuk tanggal ini tidak dihapus, tetapi dipindah ke <code>${esc(job.archived)}</code>.` : ''}</div>
+    ${job.archived ? `<div class="tip">Hasil sebelumnya untuk tanggal ini tidak dihapus, tetapi dipindah ke <code>${esc(job.archived)}</code>.</div>` : ''}
     <div class="gallery"></div>`;
-  out.querySelector('[data-open="live"]').onclick = () => postJSON('/api/open-folder', { folder: job.live });
   out.querySelector('[data-open="date"]').onclick = () => postJSON('/api/open-folder', { folder: job.folder });
   out.querySelector('[data-zip]').onclick = () => { location.href = '/api/download/' + encodeURIComponent(job.zip); };
   const g = out.querySelector('.gallery');

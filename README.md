@@ -11,32 +11,8 @@ Turns the weekly **Tata Ibadah** PDF of GKJ Medari-Sleman into everything OBS ne
 5. Click **Buat semua**. A progress bar shows each file. At the end you get a gallery of everything that was made.
 
 **Where the files go**
-- `output\Minggu Ini\`: always this week's files, one sub-folder per OBS scene. **Point OBS at these once** (see *OBS setup* below). The contents are replaced every week, so the OBS sources never need to change.
-  - `Footer\`: footers and dialog / lyrics boxes, in service order
-  - `Lagu\`: song slides (4:3 frame with the camera hole)
-  - `Lagu Persembahan\`: offering song slides with the QR (the camera hole is higher)
-  - `00 - Countdown Loop.mp4`, `00 - Thumbnail 1920.png`, `00 - Thumbnail YouTube.jpg`
-- `output\<date> Footer\`: the same files kept per Sunday, plus a ZIP.
+- `output\<date> Footer\`: all files of that Sunday, numbered in service order, plus a ZIP.
 - `output\Arsip\`: generating again for the same Sunday never deletes anything. The earlier files are moved here.
-
-If OBS has a file open while you generate (usually the countdown video while it plays), that file can't be replaced. The app says which one; hide that source in OBS (or close OBS) and click *Buat semua* again. Everything else is updated anyway.
-
-## OBS setup (once)
-
-All images are 1920×1080 and line up with a 1920×1080 canvas.
-
-| Scene | Sources, top to bottom |
-|---|---|
-| **Countdown** | Media Source → `Minggu Ini\00 - Countdown Loop.mp4`, *Loop* on, *Restart playback when source becomes active* on |
-| **Ibadah** | Image Slide Show "Footer" → folder `Minggu Ini\Footer` · Camera |
-| **Lagu** | Image Slide Show "Lagu" → folder `Minggu Ini\Lagu` · Camera at x 1167, y 335, size 729 × 410 |
-| **Lagu Persembahan** | Image Slide Show → folder `Minggu Ini\Lagu Persembahan` · Camera at x 1167, y 167, size 730 × 412 |
-
-Image Slide Show settings: *Playback Mode* = **Manual**, *Visibility Behavior* = **Pause when not visible, unpause when visible**, *Loop* off, *Transition* Cut or Fade (300 ms), *Bounding Size* 1920x1080. In *Settings → Hotkeys*, give each slide show a key for **Next Slide** and **Previous Slide**.
-
-During the service: click the eye of the Footer slide show to show / hide the current footer, and press *Next Slide* to go to the next one. The files are numbered in service order, so the next slide is always the next part of the service.
-
-After generating a new week, open each slide show's *Properties* and click **OK** once, so OBS reads the new files.
 
 **Your edits are saved automatically** in the browser for each PDF. Closing the page or opening the same PDF again brings them back. Use *Mulai lagi dari PDF* to start over.
 

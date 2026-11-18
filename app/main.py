@@ -181,10 +181,6 @@ def api_sheet_preview():
 
 # ---------- generate (runs in the background; the page polls /api/job/<id> for progress) ----------
 JOBS = {}
-LIVE_FOLDER = OUTPUT / "Minggu Ini"      # fixed folder for OBS: always this week's files
-# sub-folders, one per OBS scene: footers over the camera, song slides (camera in the frame's hole),
-# offering song slides (the hole sits higher, next to the QR card)
-LIVE_SUB = {"footer": "Footer", "lagu": "Lagu", "lagu_qr": "Lagu Persembahan"}
 ARCHIVE = OUTPUT / "Arsip"
 
 
@@ -228,11 +224,10 @@ def _run(job, d, jobs, thumb):
         folder = OUTPUT / f"{_folder_name(d.get('date', ''))} Footer"
         job["archived"] = str(_archive(folder) or "")
         folder.mkdir(parents=True, exist_ok=True)
-        names, cats = [], {}
+        names = []
 
-        def done(name, what, cat="thumb"):
+        def done(name, what):
             names.append(name)
-            cats[name] = cat
             job.update(step=len(names), current=what)
 
         if thumb:
@@ -255,14 +250,14 @@ def _run(job, d, jobs, thumb):
                 for j, img in enumerate(pages):
                     name = f"{n:02d}{chr(97 + j)} - {label} ({j + 1} of {len(pages)}).png"
                     img.save(folder / name, optimize=True)
-                    done(name, label, "footer")
+                    done(name, label)
             elif footer:
                 img = footer_render.render(footer.get("kind", "bar"), footer["main"].strip(),
                                            (footer.get("top") or "").strip(), (footer.get("bottom") or "").strip())
                 label = footer["main"] if footer.get("kind") == "bar" else f"{footer.get('top') or ''} - {footer['main']}"
                 name = f"{n:02d} - {footer_render.safe_name(label)}.png"
                 img.save(folder / name, optimize=True)
-                done(name, footer["main"], "footer")
+                done(name, footer["main"])
             if sheet:
                 for j, idx in enumerate(sheet["slides"]):
                     try:
@@ -273,43 +268,16 @@ def _run(job, d, jobs, thumb):
                     song_name = footer_render.safe_name(it.get("main") or sheet["key"])
                     name = f"{n:02d}{chr(97 + j)} - Lagu - {song_name} ({j + 1} of {len(sheet['slides'])}).png"
                     img.save(folder / name, optimize=True)
-                    done(name, f"Lagu {song_name}", "lagu_qr" if sheet.get("qr") else "lagu")
-        job["current"] = "ZIP dan folder OBS"
+                    done(name, f"Lagu {song_name}")
+        job["current"] = "ZIP"
         zbuf = folder.with_suffix(".zip")
         with zipfile.ZipFile(zbuf, "w", zipfile.ZIP_DEFLATED) as z:
             for name in names:
                 z.write(folder / name, name)
-        job["locked"] = _fill_live(folder, names, cats)
-        job.update(done=True, folder=str(folder), live=str(LIVE_FOLDER), zip=zbuf.name, files=names,
+        job.update(done=True, folder=str(folder), zip=zbuf.name, files=names,
                    rel=folder.name, current="")
     except Exception as e:
         job.update(done=True, error=str(e) or e.__class__.__name__)
-
-
-def _fill_live(folder, names, cats):
-    """Copy this week's files into output/Minggu Ini (and its scene folders) for OBS.
-    A file OBS has open (e.g. the countdown video while it plays) cannot be replaced:
-    it is listed and everything else is still updated."""
-    locked = []
-    dirs = [LIVE_FOLDER] + [LIVE_FOLDER / d for d in LIVE_SUB.values()]
-    for d in dirs:
-        d.mkdir(parents=True, exist_ok=True)
-        for p in d.iterdir():
-            if p.is_file():
-                try:
-                    p.unlink()
-                except OSError:
-                    locked.append(str(p.relative_to(LIVE_FOLDER)))
-    for name in names:
-        sub = LIVE_SUB.get(cats.get(name))
-        dest = (LIVE_FOLDER / sub / name) if sub else (LIVE_FOLDER / name)
-        try:
-            shutil.copy2(folder / name, dest)
-        except OSError:
-            rel = str(dest.relative_to(LIVE_FOLDER))
-            if rel not in locked:
-                locked.append(rel)
-    return locked
 
 
 @app.post("/api/generate")
