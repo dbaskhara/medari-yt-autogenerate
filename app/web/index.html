@@ -63,14 +63,14 @@
   .sheet .opts input[type=text] { width: 300px; }
   .sheet .opts label { display: flex; gap: 6px; align-items: center; }
   .sheet .body { display: grid; grid-template-columns: 1fr 300px; gap: 12px; align-items: start; }
-  .thumbs { display: flex; gap: 8px; flex-wrap: wrap; }
-  .thumb { position: relative; width: 112px; cursor: pointer; border: 3px solid transparent; border-radius: 6px; background: #fff; }
+  .thumbs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .thumb { position: relative; cursor: pointer; border: 3px solid transparent; border-radius: 6px; background: #fff; }
   .thumb img { width: 100%; display: block; border-radius: 3px; aspect-ratio: 4/3; object-fit: contain; background: #fff; }
   .thumb.sel { border-color: var(--accent); }
-  .thumb .badge { position: absolute; top: -8px; left: -8px; background: var(--accent); color: #fff; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; font-weight: 700; display: none; align-items: center; justify-content: center; }
+  .thumb .badge { position: absolute; top: -8px; left: -8px; background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; font-size: 14px; font-weight: 700; display: none; align-items: center; justify-content: center; }
   .thumb.sel .badge { display: flex; }
-  .thumb .cap { font-size: 11px; color: var(--muted); text-align: center; }
-  .upload { width: 112px; aspect-ratio: 4/3; border: 2px dashed #c4c9d1; border-radius: 6px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; color: var(--muted); cursor: pointer; padding: 4px; }
+  .thumb .cap { font-size: 12px; padding: 2px 0; color: var(--muted); text-align: center; }
+  .upload { aspect-ratio: 4/3; border: 2px dashed #c4c9d1; border-radius: 6px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; color: var(--muted); cursor: pointer; padding: 4px; }
   .sheet .big img { width: 100%; border-radius: 6px; border: 1px solid var(--line); display: block; background: #26292e; aspect-ratio: 16/9; }
   .sheet.off .body, .sheet.off .opts { display: none; }
   .add-sheet { grid-column: 2 / -1; display: flex; gap: 8px; align-items: center; }
@@ -398,7 +398,7 @@ function fillSheet(f, slot) {
     const pos = s.selected.indexOf(sl.index);
     t.className = 'thumb' + (pos >= 0 ? ' sel' : '');
     t.title = 'Click to use / not use this slide';
-    t.innerHTML = `<span class="badge">${pos + 1}</span><img loading="lazy" src="/api/slide/${encodeURIComponent(s.key)}/${sl.index}?w=240"><div class="cap">${sl.kind === 'lyrics' ? 'lyrics' : 'slide ' + sl.index}</div>`;
+    t.innerHTML = `<span class="badge">${pos + 1}</span><img loading="lazy" src="/api/slide/${encodeURIComponent(s.key)}/${sl.index}?w=480"><div class="cap">${sl.kind === 'lyrics' ? 'lyrics' : 'slide ' + sl.index}</div>`;
     t.onclick = () => {
       const p = s.selected.indexOf(sl.index);
       if (p >= 0) s.selected.splice(p, 1); else { s.selected.push(sl.index); s.selected.sort((a, b) => a - b); }
