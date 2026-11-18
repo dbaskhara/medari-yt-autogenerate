@@ -154,6 +154,10 @@ def box_pages(text, max_lines=BOX_MAX_LINES):
         lines = [l.strip() for l in para.split("\n") if l.strip()]
         if not lines:
             continue
+        rows = [r for l in lines for r in _wrap_line(l, font, BOX_TEXT_W)]
+        if len(rows) == max_lines + 1:      # a 4-line verse stays in one box (tighter lines), as on the stream
+            pages.append(rows)
+            continue
         speaker = ""
         m = SPEAKER_RE.match(lines[0])
         cur, cur_speaker = [], ""
@@ -184,9 +188,10 @@ def render_box(rows):
         d = ImageDraw.Draw(img)
         font = _font(PILL_FONT, BOX_SIZE)
         cap = font.getbbox("H", anchor="ls")[1] * -1
-        first = round(BOX_TEXT_CENTER - ((len(rows) - 1) * BOX_LEAD - cap) / 2)
+        lead = BOX_LEAD if len(rows) <= BOX_MAX_LINES else 52
+        first = round(BOX_TEXT_CENTER - ((len(rows) - 1) * lead - cap) / 2)
         for i, row in enumerate(rows):
-            d.text((BOX_TEXT_X, first + i * BOX_LEAD), row, font=font, fill=(17, 17, 17, 255), anchor="ls")
+            d.text((BOX_TEXT_X, first + i * lead), row, font=font, fill=(17, 17, 17, 255), anchor="ls")
     return img
 
 

@@ -9,11 +9,12 @@ band becomes one footer:
 Songs that appear inside the text (not on a band) are offered too, unticked.
 """
 import re
+import string
 from dataclasses import dataclass, asdict, field
 
 import pymupdf
 
-SONG_BOOKS = r"(?:KJ|PKJ|KPJ|KP|NKB|NNBT|GB|KMM|MKJ|Kid\.?\s*Jemaat)"
+SONG_BOOKS = r"(?:KJ|PKJ|KPJ|KPK|KP|KK|NKB|NNBT|GB|KMM|MKJ|Kid\.?\s*Jemaat)"
 SONG_RE = re.compile(
     rf"^(?P<label>.*?)[\s:]*\b(?P<book>{SONG_BOOKS})\s*(?P<num>\d+[a-z]?)"
     rf"(?:\s*:\s*(?P<verses>[\d\s,\-–]+?))?\s*[\"“”](?P<title>[^\"“”]+)[\"“”]",
@@ -86,8 +87,10 @@ def _lines(page):
     for item in out:
         if rows and abs(rows[-1][0] - item[0]) <= 3:
             y, x0, text, bb = rows[-1]
-            parts = sorted([(x0, text), (item[1], item[2])])
-            rows[-1] = (y, parts[0][0], parts[0][1] + "  " + parts[1][1],
+            parts = sorted([(x0, text, bb[2]), (item[1], item[2], item[3][2])])
+            # a wide gap means a second column (two-column lyrics): keep it apart with a tab
+            sep = "	" if parts[1][0] - parts[0][2] > 20 else " "
+            rows[-1] = (y, parts[0][0], parts[0][1] + sep + parts[1][1],
                         (min(bb[0], item[3][0]), min(bb[1], item[3][1]), max(bb[2], item[3][2]), max(bb[3], item[3][3])))
         else:
             rows.append(item)
@@ -103,6 +106,7 @@ def _header_bands(page):
 
 def _song_main(book, num, verses):
     main = f"{book.upper() if len(book) <= 4 else book} {num}"
+    verses = (verses or "").strip(" :")
     if verses:
         v = re.sub(r"\s*,\s*", ", ", verses.strip().replace("–", "-"))
         v = re.sub(r"\s*-\s*", "-", v)
@@ -153,7 +157,7 @@ def _dialog(body):
     """PF / U turns of a section: [(speaker, [lines])]. Stops at stage directions."""
     turns = []
     for line in body:
-        line = line.replace("  ", " ").strip()
+        line = re.sub(r"\s+", " ", line).strip()
         m = SPEAKER_RE.match(line)
         if m:
             spk = re.sub(r"\s+", "", m.group(1))
@@ -187,35 +191,68 @@ def _lyrics(body, end_line):
     i = end_line
     while i < len(body) and not body[i].rstrip().endswith("."):   # rest of the instruction
         i += 1
-    out = []
+    raw = []
     for line in body[i + 1:]:
         line = line.strip()
         if not line or line.isdigit() or line.lower().startswith(("http", "www.")):
             continue
         if line[0] in "(#~*" or SPEAKER_RE.match(line) or line.isupper():
             break
-        if out and line[0].islower():
+        raw.append(line)
+    # two-column lyrics (verse 1 left, verse 2 right): read the left column first,
+    # then the right one, with an empty line between = a new box
+    if sum("	" in l for l in raw) >= 2:
+        left = [l.split("	")[0] for l in raw]
+        right = [l.split("	", 1)[1] for l in raw if "	" in l]
+        raw = left + [""] + right
+    out = []
+    for line in raw:
+        line = re.sub(r"\s+", " ", line).strip()
+        if out and out[-1] and line and line[0].islower():
             out[-1] += " " + line
         else:
             out.append(line)
     return out
 
 
-SUBPOINT_RE = re.compile(r"^([a-h])\.\s+(.+)$")
+SUBPOINT_RE = re.compile(r"^([a-h])[.)]\s+(.+)$")
+# a song printed under a step: "KJ 320.      SYUKUR KAMI PADAMU"
+SONG_HEAD_RE = re.compile(rf"^(?P<book>{SONG_BOOKS})\s*(?P<num>\d+[a-z]?)\.\s+(?P<title>[^\d].+)$")
 BARE_SONG_RE = re.compile(rf"\b(?P<book>{SONG_BOOKS})\s*(?P<num>\d+[a-z]?)(?:\s*:\s*(?P<verses>\d[\d\s,\-–]*))?", re.IGNORECASE)
 
 
-def _subpoints(section, body, songs_seen):
+SONG_STEP_RE = re.compile(r"(?:kidung|nyanyian|pujian|pepuj[eè]n|lagu)\b", re.IGNORECASE)
+
+
+def _subpoints(section, body, songs_seen, reading_order=""):
     """Lettered steps inside a section, e.g. Paladosaning Sakramèn Bujana Suci:
     a. Pratélan / b. Kidung Panglarap KPJ 314: 1 "..." / c. Paladosaning Roti Pambujanan ...
     Each step is a pill with the section name on top; song steps load their music sheet."""
-    out = []
-    for line in body:
-        m = SUBPOINT_RE.match(line.strip())
-        if not m:
+    steps = [(n, SUBPOINT_RE.match(l.strip())) for n, l in enumerate(body) if SUBPOINT_RE.match(l.strip())]
+    # Songs printed as notation in the section ("KJ 320. SYUKUR KAMI PADAMU") belong to the song step
+    # that comes before them in the PDF's own reading order (the notation box may sit elsewhere on the page).
+    printed = {}
+    start = max(reading_order.find(_clean(section)) if section else 0, 0)
+    for h in (SONG_HEAD_RE.match(_clean(l)) for l in body):
+        if not h:
             continue
+        pos = reading_order.find(f'{h.group("book")} {h.group("num")}.', start)
+        before = None
+        for n, m in steps:
+            spos = reading_order.find(_clean(body[n]), start)
+            if SONG_STEP_RE.match(_clean(m.group(2))) and 0 <= spos < pos:
+                before = n
+        if before is not None and before not in printed:
+            printed[before] = h
+    out = []
+    for n, m in steps:
         text = _clean(m.group(2))
         s = INLINE_SONG_RE.search(text) or BARE_SONG_RE.search(text)
+        if not s and n in printed:
+            h = printed[n]
+            title = string.capwords(h.group("title").strip(" ."))
+            text = f'{text} {h.group("book")} {h.group("num")} "{title}"'
+            s = INLINE_SONG_RE.search(text)
         if s:
             book = re.sub(r"\s+", "", s.group("book")).upper()
             key = f"{book} {s.group('num')}"
@@ -324,6 +361,9 @@ def parse(pdf_path):
             groups.append((band.y0, idx))
         for y, idx in groups:
             header = _clean(" ".join(lines[i][2] for i in idx))
+            if SONG_HEAD_RE.match(header):   # a song's notation heading on a coloured band: it is text, not a section
+                entries.append((pno, y + 0.01, "text", header))
+                continue
             body_after = [l[2] for i, l in enumerate(lines) if i > max(idx)][:12]
             header_texts.add(header)
             entries.append((pno, y, "header", (header, body_after)))
@@ -353,7 +393,7 @@ def parse(pdf_path):
             new = _classify(*payload)
             name = (new[0].main if new[0].kind == "bar" else new[0].top) if new else ""
             new += _boxes(name, bodies.get(n, []), known_lyrics)
-            steps = _subpoints(name, bodies.get(n, []), subpoint_songs)
+            steps = _subpoints(name, bodies.get(n, []), subpoint_songs, full)
             for f in steps:
                 if f.song:
                     seen_songs.add(f"{f.song['code']} {f.song['num']}")
